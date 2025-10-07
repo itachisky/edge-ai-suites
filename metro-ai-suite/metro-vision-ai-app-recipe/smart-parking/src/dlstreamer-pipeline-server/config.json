@@ -23,8 +23,7 @@
                         }
                     }
                 },
-                "auto_start": false,
-                "publish_frame": true
+                "auto_start": false
             },
             {
                 "name": "yolov10_1_gpu",
@@ -48,14 +47,13 @@
                         }
                     }
                 },
-                "auto_start": false,
-                "publish_frame": true
+                "auto_start": false
             },
             {
                 "name": "yolov10_1_npu",
                 "source": "gstreamer",
                 "queue_maxsize": 50,
-                "pipeline": "{auto_source} name=source ! parsebin ! vah264dec ! vapostproc ! video/x-raw(memory:VAMemory) ! gvadetect model=/home/pipeline-server/models/public/yolov10s/FP16/yolov10s.xml pre-process-backend=va device=NPU batch_size=8 model-instance-id=instgpu0 name=detection ! queue ! gvaclassify batch-size=8 model=/home/pipeline-server/models/colorcls2/colorcls2.xml model_proc=/home/pipeline-server/models/colorcls2/colorcls2.json pre-process-backend=va device=NPU model-instance-id=instgpu1 name=classification ! queue ! gvapython module=/home/pipeline-server/models/colorcls2/process class=Process function=process_frame ! queue ! gvawatermark ! videoconvertscale ! video/x-raw,format=I420 ! gvametaconvert add-empty-results=true name=metaconvert ! queue ! gvafpscounter ! appsink name=destination",
+                "pipeline": "{auto_source} name=source ! parsebin ! vah264dec ! vapostproc ! video/x-raw(memory:VAMemory) ! gvadetect model=/home/pipeline-server/models/public/yolov10s/FP16/yolov10s.xml pre-process-backend=va device=NPU batch_size=8 model-instance-id=instnpu0 name=detection ! queue ! gvaclassify batch-size=8 model=/home/pipeline-server/models/colorcls2/colorcls2.xml model_proc=/home/pipeline-server/models/colorcls2/colorcls2.json pre-process-backend=va device=NPU model-instance-id=instnpu1 name=classification ! queue ! gvapython module=/home/pipeline-server/models/colorcls2/process class=Process function=process_frame ! queue ! gvawatermark ! videoconvertscale ! video/x-raw,format=I420 ! gvametaconvert add-empty-results=true name=metaconvert ! queue ! gvafpscounter ! appsink name=destination",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -73,8 +71,7 @@
                         }
                     }
                 },
-                "auto_start": false,
-                "publish_frame": true
+                "auto_start": false
             }
         ]
     }

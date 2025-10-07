@@ -23,8 +23,7 @@
                         }
                     }
                 },
-                "auto_start": false,
-                "publish_frame": true
+                "auto_start": false
             },
             {
                 "name": "yolov10_1_gpu",
@@ -48,8 +47,7 @@
                         }
                     }
                 },
-                "auto_start": false,
-                "publish_frame": true
+                "auto_start": false
             },
             {
                 "name": "yolov10_1_npu",
@@ -73,8 +71,7 @@
                         }
                     }
                 },
-                "auto_start": false,
-                "publish_frame": true
+                "auto_start": false
             }
         ]
     }
