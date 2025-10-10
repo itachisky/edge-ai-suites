@@ -81,4 +81,4 @@ For more information on setting up a deployment, see [Set up a Deployment](<http
 
 1. Follow the steps described in the **Worker Safety Gear Detection** [Documentation](<how-to-deploy-using-helm-charts.md#deploy-the-application>) on the usage of the application.
 
-   > Note: Skip the Install Helm chart step.
+   > Note: Skip the Install the Helm chart step.
