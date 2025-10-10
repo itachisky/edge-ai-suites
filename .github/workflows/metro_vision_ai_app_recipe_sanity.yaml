@@ -57,10 +57,10 @@ jobs:
       run: | 
        sudo apt-get update
        sudo apt install -y python3-nose 
-       python -m pip install --upgrade pip
-       python3 -m pip install robotframework
-       python3 -m pip install selenium
-       python3 -m pip install robotframework-seleniumlibrary
+       python3.12 -m pip install --upgrade pip
+       python3.12 -m pip install robotframework
+       python3.12 -m pip install selenium
+       python3.12 -m pip install robotframework-seleniumlibrary
        cd edge-ai-suites-repo/metro-ai-suite/metro-vision-ai-app-recipe/test-suite/robot_files
        robot test.robot || true  
        mkdir -p /tmp/test_results
