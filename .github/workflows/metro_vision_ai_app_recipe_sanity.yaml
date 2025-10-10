@@ -53,14 +53,17 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Sanity Test 
+    - name: Install Dependencies
       run: | 
        sudo apt-get update
-       sudo apt install -y python3-nose 
-       python3.12 -m pip install --upgrade pip
-       python3.12 -m pip install robotframework
-       python3.12 -m pip install selenium
-       python3.12 -m pip install robotframework-seleniumlibrary
+       sudo apt install -y python3-nose python3-pip python3-dev
+       sudo python3.12 -m pip install --upgrade pip
+       sudo python3.12 -m pip install robotframework
+       sudo python3.12 -m pip install selenium
+       sudo python3.12 -m pip install robotframework-seleniumlibrary
+       sudo python3.12 -m pip install webdriver-manager
+    - name: Sanity Test 
+      run: | 
        cd edge-ai-suites-repo/metro-ai-suite/metro-vision-ai-app-recipe/test-suite/robot_files
        robot test.robot || true  
        mkdir -p /tmp/test_results
