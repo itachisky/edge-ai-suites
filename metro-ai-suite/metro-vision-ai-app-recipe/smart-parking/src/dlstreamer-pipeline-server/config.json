@@ -91,6 +91,31 @@
                 },
                 "auto_start": false,
                 "publish_frame": true
+            },
+                        {
+                "name": "smart_parking_benchmarking",
+                "source": "gstreamer",
+                "queue_maxsize": 50,
+                "pipeline": "multifilesrc location=/home/pipeline-server/videos/new_video_1.mp4 loop=true ! parsebin ! vah264dec ! vapostproc ! video/x-raw(memory:VAMemory) ! gvadetect name=detection ! queue ! gvaclassify name=classification ! queue ! gvapython module=/home/pipeline-server/models/colorcls2/process class=Process function=process_frame ! queue ! gvawatermark ! videoconvertscale ! video/x-raw,format=I420 ! gvafpscounter ! appsink sync=false async=false",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "detection-properties": {
+                            "element": {
+                                "name": "detection",
+                                "format": "element-properties"
+                            }
+                        },
+                        "classification-properties": {
+                            "element": {
+                                "name": "classification",
+                                "format": "element-properties"
+                             }
+                        }
+
+                    }
+                },
+                "auto_start": false
             }
         ]
     },

@@ -1,0 +1,31 @@
+[
+    {
+        "pipeline": "smart_parking_benchmarking",
+        "payload":{
+            "parameters": {
+                "detection-properties": {
+                    "model": "/home/pipeline-server/models/public/yolov10s/FP16/yolov10s.xml",
+                    "device": "GPU",
+                    "batch-size": 8,
+                    "model-instance-id": "instgpu0",
+                    "inference-interval": 5,
+                    "inference-region": 0,
+                    "nireq": 2,
+                    "ie-config": "NUM_STREAMS=2",
+                    "pre-process-backend": "va-surface-sharing",
+                    "threshold": 0.7
+                },
+                "classification-properties": {
+                    "model": "/home/pipeline-server/models/colorcls2/colorcls2.xml",
+                    "device": "GPU",
+                    "model-instance-id": "instgpu1",
+                    "inference-interval": 5,
+                    "batch-size": 8,
+                    "nireq": 2,
+                    "ie-config": "NUM_STREAMS=2",
+                    "pre-process-backend": "va-surface-sharing"
+                }
+            }
+        }
+    }
+]
