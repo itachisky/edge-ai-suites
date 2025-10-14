@@ -1,0 +1,18 @@
+[
+    {
+        "pipeline": "object_tracking_benchmarking",
+        "payload":{
+            "parameters": {
+                "detection-properties": {
+                    "model": "/home/pipeline-server/models/intel/pedestrian-and-vehicle-detector-adas-0001/FP16-INT8/pedestrian-and-vehicle-detector-adas-0001.xml",
+                    "device": "CPU",
+                    "inference-interval": 3,
+                    "inference-region": 0,
+                    "pre-process-backend": "opencv",
+                    "threshold": 0.7,
+                    "model-instance-id": "instcpu0"
+                }
+            }
+        }
+    }
+]

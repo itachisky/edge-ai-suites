@@ -95,59 +95,84 @@ function stop_all_pipelines() {
   return 0
 }
 
-function collect_avg_fps() {
-    local duration=${1:-60} # Default duration 60s
-    
-    local total_fps_sum=0
-    local num_samples=0
-    local num_streams_at_start=0
+declare -gA final_avg_fps
 
-    # Get initial number of streams
-    local initial_status_output
-    initial_status_output=$(get_pipeline_status)
-    local initial_fps_list
-    initial_fps_list=$(echo "$initial_status_output" | jq -r '[.[] | select(.state=="RUNNING") | .avg_fps] | .[]')
-    
-    if [ -n "$initial_fps_list" ]; then
-        num_streams_at_start=$(echo "$initial_fps_list" | wc -l)
+function check_all_streams_meet_target_fps() {
+    local duration=$1
+    local target_fps=$2
+
+    # Get initial list of running pipeline IDs
+    local pipeline_ids
+    pipeline_ids=$(get_pipeline_status | jq -r '[.[] | select(.state=="RUNNING") | .id] | .[]')
+
+    if [ -z "$pipeline_ids" ]; then
+        echo "No running streams to monitor."
+        return 1 # Fail if no streams are running
     fi
 
-    if [ "$num_streams_at_start" -eq 0 ]; then
-        echo "0"
-        return
-    fi
+    declare -A fps_sums
+    declare -A sample_counts
+    unset final_avg_fps
+    declare -gA final_avg_fps
 
-    end_time=$((SECONDS + duration))
-    while [ $SECONDS -lt $end_time ]; do
-        local status_output
-        status_output=$(get_pipeline_status)
-        
-        local current_fps_list
-        current_fps_list=$(echo "$status_output" | jq -r '[.[] | select(.state=="RUNNING") | .avg_fps] | .[]')
-        
-        if [ -n "$current_fps_list" ]; then
-            # Sum up FPS from all streams for this snapshot
-            local snapshot_total_fps
-            snapshot_total_fps=$(echo "$current_fps_list" | paste -sd+ - | bc)
-            
-            if [ -n "$snapshot_total_fps" ]; then
-                total_fps_sum=$(echo "$total_fps_sum + $snapshot_total_fps" | bc)
-                num_samples=$((num_samples + 1))
-            fi
-        fi
-        sleep 2
+    # Initialize sums and counts for each pipeline
+    for id in $pipeline_ids; do
+        fps_sums[$id]=0
+        sample_counts[$id]=0
     done
 
-    if [ "$num_samples" -eq 0 ]; then
-        echo "0"
-        return
-    fi
+    echo ">>>>> Monitoring FPS for $duration seconds..."
+    local start_time=$SECONDS
+    while (( SECONDS - start_time < duration )); do
+        local elapsed_time=$((SECONDS - start_time))
+        echo -ne "Monitoring... ${elapsed_time}s / ${duration}s\r"
 
-    # Calculate average FPS per stream over the duration
-    local avg_fps
-    avg_fps=$(echo "scale=2; $total_fps_sum / ($num_samples * $num_streams_at_start)" | bc)
-    
-    echo "$avg_fps"
+        local status_output
+        status_output=$(get_pipeline_status)
+
+        for id in $pipeline_ids; do
+            # Extract avg_fps for the specific pipeline ID
+            local current_fps
+            current_fps=$(echo "$status_output" | jq -r --arg ID "$id" '.[] | select(.id==$ID) | .avg_fps')
+
+            if [ -n "$current_fps" ] && [[ "$current_fps" != "null" ]]; then
+                fps_sums[$id]=$(echo "${fps_sums[$id]} + $current_fps" | bc)
+                sample_counts[$id]=$((sample_counts[$id] + 1))
+            fi
+        done
+        sleep 2
+    done
+    echo -ne "\n" # Move to next line after progress bar finishes
+
+    # Now, check if the average of each stream met the target
+    local all_streams_met_target=true
+    for id in $pipeline_ids; do
+        local num_samples=${sample_counts[$id]}
+        if [ "$num_samples" -gt 0 ]; then
+            local total_fps=${fps_sums[$id]}
+            local avg_fps
+            avg_fps=$(echo "scale=2; $total_fps / $num_samples" | bc)
+            final_avg_fps[$id]=$avg_fps
+            
+            echo "Stream $id Average FPS: $avg_fps"
+
+            if (( $(echo "$avg_fps < $target_fps" | bc -l) )); then
+                echo "  -> ❌ FAILED to meet target FPS of $target_fps"
+                all_streams_met_target=false
+            else
+                echo "  -> ✅ OK"
+            fi
+        else
+            echo "Stream $id: No FPS data collected."
+            all_streams_met_target=false
+        fi
+    done
+
+    if $all_streams_met_target; then
+        return 0 # Success
+    else
+        return 1 # Failure
+    fi
 }
 
 function run_stream_density_mode() {
@@ -159,6 +184,7 @@ function run_stream_density_mode() {
     
     local optimal_streams=0
     local current_streams=1
+    declare -A last_successful_fps
     
     # Extract pipeline name and payload body from the JSON file
     local pipeline_name
@@ -184,14 +210,16 @@ function run_stream_density_mode() {
         echo ">>>>> Waiting 10 seconds for stabilization..."
         sleep 10
         
-        local avg_fps
-        avg_fps=$(collect_avg_fps "$duration")
-        
-        echo ">>>>> Average FPS per stream: $avg_fps"
-        
-        if (( $(echo "$avg_fps >= $target_fps" | bc -l) )); then
+        if check_all_streams_meet_target_fps "$duration" "$target_fps"; then
             echo "✓ Target FPS met with $current_streams stream(s)."
             optimal_streams=$current_streams
+            
+            # Save the FPS values from this successful run
+            unset last_successful_fps
+            declare -A last_successful_fps
+            for id in "${!final_avg_fps[@]}"; do
+                last_successful_fps[$id]=${final_avg_fps[$id]}
+            done
             
             stop_all_pipelines
             sleep 5
@@ -210,6 +238,11 @@ function run_stream_density_mode() {
     if [ "$optimal_streams" -gt 0 ]; then
         echo "✅ FINAL RESULT: Stream-Density Benchmark Completed!"
         echo "   Maximum $optimal_streams stream(s) can achieve the target FPS of $target_fps."
+        echo
+        echo "   Average FPS per stream for the optimal configuration:"
+        for id in "${!last_successful_fps[@]}"; do
+            echo "     - Stream $id: ${last_successful_fps[$id]} FPS"
+        done
     else
         echo "❌ FINAL RESULT: Target FPS Not Achievable."
         echo "   No configuration could achieve the target FPS of $target_fps."

@@ -1,0 +1,25 @@
+[
+    {
+        "pipeline": "smart_parking_benchmarking",
+        "payload":{
+            "parameters": {
+                "detection-properties": {
+                    "model": "/home/pipeline-server/models/public/yolov10s/FP16/yolov10s.xml",
+                    "device": "CPU",
+                    "model-instance-id": "inst0",
+                    "inference-interval": 3,
+                    "inference-region": 0,
+                    "pre-process-backend": "opencv",
+                    "threshold": 0.7
+                },
+                "classification-properties": {
+                    "model": "/home/pipeline-server/models/colorcls2/colorcls2.xml",
+                    "device": "CPU",
+                    "model-instance-id": "inst1",
+                    "inference-interval": 3,
+                    "pre-process-backend": "opencv"
+                }
+            }
+        }
+    }
+]
