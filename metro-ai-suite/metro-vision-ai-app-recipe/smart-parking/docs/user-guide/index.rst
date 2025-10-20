@@ -20,9 +20,13 @@ Using advanced technologies and pre-trained deep learning models, the applicatio
 
    how-to-customize-application
    how-to-deploy-with-helm
+<<<<<<< HEAD
    how-to-use-cpu-for-inference
    how-to-use-gpu-for-inference
    how-to-use-npu-for-inference
+=======
+   how-to-deploy-with-edge-orchestrator
+>>>>>>> 9c21e8fbdc32ebf46f8bb8e6314cfa4bee6bb31e
 
 .. toctree::
    :caption: Source Code
