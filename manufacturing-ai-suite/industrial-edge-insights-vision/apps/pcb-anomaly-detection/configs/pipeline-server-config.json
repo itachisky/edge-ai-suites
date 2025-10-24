@@ -153,6 +153,24 @@
                     }
                 },
                 "auto_start": false
+            },
+            {
+                "name": "pcb_anomaly_detection_benchmark",
+                "source": "gstreamer",
+                "queue_maxsize": 50,
+                "pipeline": "{auto_source} name=source ! parsebin ! vah264dec ! vapostproc ! video/x-raw(memory:VAMemory) ! gvaclassify name=classification ! queue ! gvafpscounter ! appsink sync=false async=false ",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "classification-properties": {
+                            "element": {
+                                "name": "classification",
+                                "format": "element-properties"
+                            }
+                        }
+                    }
+                },
+                "auto_start": false
             }
         ]
     }
