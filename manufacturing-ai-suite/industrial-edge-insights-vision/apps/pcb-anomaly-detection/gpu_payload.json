@@ -3,7 +3,7 @@
         "pipeline": "pcb_anomaly_detection_gpu",
         "payload":{
             "source": {
-                "uri": "file:///home/pipeline-server/resources/videos/anomalib_pcb_looped.avi",
+                "uri": "file:///home/pipeline-server/resources/videos/anomalib_pcb_test_looped.avi",
                 "type": "uri"
             },
             "destination": {
@@ -19,6 +19,7 @@
                     "batch-size": 8,
                     "model-instance-id": "inst0",
                     "inference-interval": 1,
+                    "inference-region": 0,
                     "nireq": 2,
                     "ie-config": "NUM_STREAMS=2",
                     "pre-process-backend": "va-surface-sharing"

@@ -13,6 +13,7 @@
                     "batch-size": 8,
                     "model-instance-id": "instgpu0",
                     "inference-interval": 1,
+                    "inference-region": 0,
                     "nireq": 2,
                     "ie-config": "NUM_STREAMS=2",
                     "pre-process-backend": "va-surface-sharing"
