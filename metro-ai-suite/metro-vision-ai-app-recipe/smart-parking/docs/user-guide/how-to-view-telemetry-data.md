@@ -22,4 +22,4 @@ Open [`http://<HOST_IP>:30909`](http://<HOST_IP>:30909) in your browser to view 
 - `memory_usage_bytes`
 - `fps_per_pipeline{}`
     - If you are starting multiple pipelines, then it can also be queried per pipeline ID. Example: `fps_per_pipeline{pipeline_id="658a5260f37d11ef94fc0242ac160005"}`
-![Open telemetry fps_per_pipeline example in prometheus](./images/prometheus_fps_per_pipeline.png)
+![Open telemetry fps_per_pipeline example in prometheus](./_images/prometheus_fps_per_pipeline.png)

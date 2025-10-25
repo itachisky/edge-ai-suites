@@ -21,6 +21,7 @@ Using advanced technologies and pre-trained deep learning models, the applicatio
    how-to-customize-application
    how-to-deploy-with-helm
    how-to-deploy-with-edge-orchestrator
+   how-to-view-telemetry-data
 
 .. toctree::
    :caption: Source Code
