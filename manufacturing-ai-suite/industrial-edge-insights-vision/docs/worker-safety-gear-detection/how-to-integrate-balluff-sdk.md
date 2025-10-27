@@ -205,7 +205,7 @@ Edit `edge-ai-suites/manufacturing-ai-suite/industrial-edge-insights-vision/apps
             "destination": {
                 "frame": {
                     "type": "webrtc",
-                    "peer-id": "pdd"
+                    "peer-id": "wsgd"
                 }
             },
             "parameters": {
@@ -225,7 +225,7 @@ Edit `edge-ai-suites/manufacturing-ai-suite/industrial-edge-insights-vision/apps
 Run the sample script to start the pipeline:
 
 ```bash
-./sample_start.sh -p pallet_defect_detection
+./sample_start.sh -p worker_safety_gear_detection
 ```
 ---
 
@@ -234,7 +234,7 @@ Run the sample script to start the pipeline:
 Open a browser and navigate to:
 
 ```
-https://<HOST_IP>/mediamtx/pdd/
+https://<HOST_IP>/mediamtx/wsgd/
 ```
 
 Replace `<HOST_IP>` with the IP address configured in your `.env` file.

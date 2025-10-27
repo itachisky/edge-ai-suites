@@ -193,7 +193,7 @@ Edit `edge-ai-suites/manufacturing-ai-suite/industrial-edge-insights-vision/apps
             "destination": {
                 "frame": {
                     "type": "webrtc",
-                    "peer-id": "pdd"
+                    "peer-id": "wsgd"
                 }
             },
             "parameters": {
@@ -222,7 +222,7 @@ Run the sample script to start the pipeline:
 Open a browser and navigate to:
 
 ```
-https://<HOST_IP>/mediamtx/pdd/
+https://<HOST_IP>/mediamtx/wsgd/
 ```
 
 Replace `<HOST_IP>` with the IP address configured in your `.env` file.
