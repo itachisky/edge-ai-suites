@@ -29,7 +29,7 @@ cd edge-ai-libraries/microservices/dlstreamer-pipeline-server
 
 ### Step 2: Create the Docker Image
 
-Create a file named `BaslerDockerfile` inside your `dlstreamer-pipeline-server` directory.
+Create a Docker file named `BaslerDockerfile` inside your `dlstreamer-pipeline-server` directory with the following content.
 
 ```dockerfile
 FROM intel/dlstreamer-pipeline-server:3.1.0-ubuntu24
@@ -51,6 +51,9 @@ RUN chmod +x /home/pipeline-server/src-gst-gencamsrc/setup.sh
 RUN chmod +x /home/pipeline-server/src-gst-gencamsrc/autogen.sh
 RUN chmod +x /home/pipeline-server/install_gencamsrc_gstreamer_plugin.sh
 RUN /home/pipeline-server/install_gencamsrc_gstreamer_plugin.sh
+
+ENV GENICAM_GENTL64_PATH=/opt/pylon/lib/gentlproducer/gtl \
+    GST_PLUGIN_PATH=/opt/intel/dlstreamer/lib:/opt/intel/dlstreamer/gstreamer/lib/gstreamer-1.0:/opt/intel/dlstreamer/gstreamer/lib/:/usr/lib/x86_64-linux-gnu/gstreamer-1.0:/usr/local/lib/gstreamer-1.0
 
 USER intelmicroserviceuser
 ```
@@ -81,13 +84,11 @@ docker compose up -d
 
 ---
 
-### Step 5: Testing
+### Step 5: Run a test pipeline and dump the camera output into a file in the /tmp directory
 
-Note down serial of the basler camera and up `<basler-camera-serial>` in the following command
+Note down serial of the basler camera and update `<basler-camera-serial>` in the following command
 ```bash
 docker exec -it dlstreamer-pipeline-server bash
-$ export GENICAM_GENTL64_PATH=/opt/Impact_Acquire/lib/x86_64
-$ export GST_PLUGIN_PATH=$GST_PLUGIN_PATH:/usr/lib/x86_64-linux-gnu/gstreamer-1.0:/usr/local/lib/gstreamer-1.0
 $ gst-launch-1.0 gencamsrc serial=<basler-camera-serial> pixel-format=bayerrggb name=source ! bayer2rgb ! videoscale ! video/x-raw, width=1920,height=1080 ! videoconvert ! queue ! jpegenc ! avimux ! filesink location=/tmp/gencam_basler_output.avi
 ```
 
@@ -114,16 +115,10 @@ cp .env_pallet_defect_detection .env
 
 ### Step 2: Configure the .env File
 
-Open the `.env` file and update the following variables:
+Update the `.env` file with the newly created image as below and modify any other required variables.
 
 ```bash
-HOST_IP=
 DLSTREAMER_PIPELINE_SERVER_IMAGE=intel/dlstreamer-pipeline-server:3.1.0-ubuntu24-gencamsrc-basler
-MR_PSQL_PASSWORD=
-MR_MINIO_ACCESS_KEY=
-MR_MINIO_SECRET_KEY=
-MTX_WEBRTCICESERVERS2_0_USERNAME=
-MTX_WEBRTCICESERVERS2_0_PASSWORD=
 ```
 
 ---
@@ -139,7 +134,7 @@ Execute the setup script to initialize project directories and configurations.
 
 ### Step 4: Update the Pipeline Configuration
 
-Update the pipeline in `config.json` to use the camera:
+Update the pipeline in `./apps/pallet-defect-detection/configs/pipeline-server-config.json` to use the camera:
 
 ```json
 {
@@ -154,14 +149,26 @@ Replace <camera id> with balser camera id connected over the USB or GigE
 
 ---
 
-### Step 5: Configure docker-compose.yml
+### Step 5: Configure docker-compose.yml (Optional, if testing with a GigE network camera)
 
-In your `docker-compose.yml`, verify the following environment variables are set under the pipeline service section:
+When testing with a GigE camera, you need to adjust the `docker-compose.yml` configuration for the `dlstreamer-pipeline-server` service. Follow these steps:
+
+1. Update the `network_mode` to `"host"`.
+2. Remove the `networks` section.
+
+The configuration should look like this:
 
 ```yaml
-GENICAM_GENTL64_PATH: /opt/pylon/lib/gentlproducer/gtl
-GST_PLUGIN_PATH: /opt/intel/dlstreamer/lib:/opt/intel/dlstreamer/gstreamer/lib/gstreamer-1.0:/opt/intel/dlstreamer/gstreamer/lib/:/usr/lib/x86_64-linux-gnu/gstreamer-1.0:/usr/local/lib/gstreamer-1.0
+services:
+  dlstreamer-pipeline-server:
+    .
+    .
+    network_mode: "host"
+    # networks:
+    #   - mraas
 ```
+
+> Note: Since the network configuration is being changed, other dependent services, like mediamtx, might fail due to the change in network mode.
 
 ---
 
@@ -219,24 +226,3 @@ https://<HOST_IP>/mediamtx/pdd/
 ```
 
 Replace `<HOST_IP>` with the IP address configured in your `.env` file.
-
-## Testing with a GigE Camera
-
-When testing with a GigE camera, you need to adjust the `docker-compose.yml` configuration for the `dlstreamer-pipeline-server` service. Follow these steps:
-
-1. Update the `network_mode` to `"host"`.
-2. Remove the `networks` section.
-
-The configuration should look like this:
-
-```yaml
-services:
-  dlstreamer-pipeline-server:
-    .
-    .
-    network_mode: "host"
-    # networks:
-    #   - mraas
-```
-
-> Note: Since the network configuration is being changed, other dependent services, like mediamtx, might fail due to the change in network mode.
