@@ -221,3 +221,23 @@ https://<HOST_IP>/mediamtx/wsgd/
 ```
 
 Replace `<HOST_IP>` with the IP address configured in your `.env` file.
+
+## Troubleshooting
+
+For Basler USB Cameras if you face issue with the detection of the camera, you can perform the following steps
+```bash
+sudo apt install v4l-utils
+v4l2-ctl --list-devices
+stat /dev/bus/usb
+sudo usermod -a -G dialout $USER
+# Download the setup file
+wget https://downloadbsl.blob.core.windows.net/software/pylon-8.1.0_linux-x86_64_setup.tar.gz
+# Create the target directory and extract the setup file in one step
+mkdir -p pylon-8.1.0_linux-x86_64_setup
+tar xvf pylon-8.1.0_linux-x86_64_setup.tar.gz -C pylon-8.1.0_linux-x86_64_setup
+# Extract the second tarball inside the setup directory
+tar xvf pylon-8.1.0_linux-x86_64_setup/pylon-8.1.0_linux-x86_64.tar.gz -C pylon-8.1.0_linux-x86_64_setup
+# Run the USB setup script
+./pylon-8.1.0_linux-x86_64_setup/share/pylon/setup-usb.sh
+sudo reboot
+```
