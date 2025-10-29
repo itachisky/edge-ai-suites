@@ -36,7 +36,6 @@ env:
   https_proxy:
   no_proxy:
   ENABLE_OPEN_TELEMETRY: true
-  OTEL_COLLECTOR_PORT: 30418
   OTEL_EXPORT_INTERVAL_MILLIS: 5000
 privileged_access_required: false
 gpu:
