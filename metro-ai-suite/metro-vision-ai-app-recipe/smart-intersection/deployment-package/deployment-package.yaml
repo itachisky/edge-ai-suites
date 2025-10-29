@@ -7,7 +7,7 @@ $schema: "https://schema.intel.com/catalog.orchestrator/0.1/schema"
 
 name: "si"
 displayName: "si"
-description: "Smart Intersection Sample application Application"
+description: "Smart Intersection Deployment Package"
 version: "0.1.0"
 
 applications:
