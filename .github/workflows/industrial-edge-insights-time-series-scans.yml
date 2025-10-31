@@ -2,8 +2,8 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-name: "[Industrial Edge Insights Time Series] SDLe Scans"
-run-name: "[Industrial Edge Insights Time Series] SDLe Scans workflow (by @${{ github.actor }} via ${{ github.event_name }})"
+name: "[Industrial Edge Insights Multimodal and Time Series] SDLe Scans"
+run-name: "[Industrial Edge Insights Multimodal and Time Series] SDLe Scans workflow (by @${{ github.actor }} via ${{ github.event_name }})"
 
 
 # Only run at most 1 workflow concurrently per PR, unlimited for branches
@@ -357,6 +357,16 @@ jobs:
             cd manufacturing-ai-suite/industrial-edge-insights-time-series/
             make gen_helm_charts
             cd helm
+            INFLUXDB_USERNAME=$(cat /dev/urandom | tr -dc 'a-zA-Z' | head -c 8)
+            INFLUXDB_PASSWORD=$(openssl rand -hex 10)
+            VISUALIZER_GRAFANA_USER=$(cat /dev/urandom | tr -dc 'a-zA-Z' | head -c 8)
+            VISUALIZER_GRAFANA_PASSWORD=$(openssl rand -hex 10)
+
+            sed -i "s/INFLUXDB_USERNAME:.*/INFLUXDB_USERNAME: ${INFLUXDB_USERNAME}/g" values.yaml
+            sed -i "s/INFLUXDB_PASSWORD:.*/INFLUXDB_PASSWORD: ${INFLUXDB_PASSWORD}/g" values.yaml
+            sed -i "s/VISUALIZER_GRAFANA_USER:.*/VISUALIZER_GRAFANA_USER: ${VISUALIZER_GRAFANA_USER}/g" values.yaml
+            sed -i "s/VISUALIZER_GRAFANA_PASSWORD:.*/VISUALIZER_GRAFANA_PASSWORD: ${VISUALIZER_GRAFANA_PASSWORD}/g" values.yaml
+
             trivy config . >> trivy-timeseries-helm.txt
           fi
           
