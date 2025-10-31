@@ -36,8 +36,7 @@ Following directory structure consisting of generic deployment code as well as p
                 pipeline-server-config.json
             setup.sh
             payload.json
-            gpu_payload.json
-            benchmark_gpu_payload.json
+
     helm/
         apps/
             application_name/
