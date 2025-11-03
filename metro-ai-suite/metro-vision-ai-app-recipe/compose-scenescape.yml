@@ -158,6 +158,31 @@ services:
         /run.sh",
       ]
 
+  mediamtx-server:
+    image: bluenviron/mediamtx:1.14.0
+    container_name: mediamtx-server
+    environment:
+      - MTX_LOGLEVEL=debug
+      - MTX_RTSP=yes
+      - MTX_RTMP=no
+      - MTX_HLS=no
+      - MTX_SRT=no
+      - MTX_WEBRTC=no
+    ports:
+      - "8554:8554"
+    networks:
+      - scenescape
+
+  intersection-cams:
+    image: linuxserver/ffmpeg:version-8.0-cli
+    command: -nostdin -re -stream_loop -1 -i /workspace/media/1122north.ts -re -stream_loop -1 -i /workspace/media/1122east.ts -re -stream_loop -1 -i /workspace/media/1122south.ts -re -stream_loop -1 -i /workspace/media/1122west.ts -map 0:v -c copy -f rtsp -rtsp_transport tcp rtsp://mediamtx-server:8554/1122north -map 1:v -c copy -f rtsp -rtsp_transport tcp rtsp://mediamtx-server:8554/1122east -map 2:v -c copy -f rtsp -rtsp_transport tcp rtsp://mediamtx-server:8554/1122south -map 3:v -c copy -f rtsp -rtsp_transport tcp rtsp://mediamtx-server:8554/1122west
+    volumes:
+      - ./${SAMPLE_APP}/src/dlstreamer-pipeline-server/videos:/workspace/media
+    networks:
+      - scenescape
+    depends_on:
+      - mediamtx-server
+
   dlstreamer-pipeline-server:
     image: ${DLSTREAMER_PIPELINE_SERVER_IMAGE}
     networks:
@@ -189,7 +214,6 @@ services:
     volumes:
       - ./${SAMPLE_APP}/src/dlstreamer-pipeline-server/config.json:/home/pipeline-server/config.json
       - ./${SAMPLE_APP}/src/dlstreamer-pipeline-server/user_scripts:/home/pipeline-server/user_scripts
-      - ./${SAMPLE_APP}/src/dlstreamer-pipeline-server/videos:/home/pipeline-server/videos
       - ./${SAMPLE_APP}/src/dlstreamer-pipeline-server/models/intersection:/home/pipeline-server/models/object_detection/intersection
       - dlstreamer-pipeline-server-pipeline-root:/var/cache/pipeline_root:uid=1999,gid=1999
       - dlstreamer-pipeline-server-tmp:/tmp
