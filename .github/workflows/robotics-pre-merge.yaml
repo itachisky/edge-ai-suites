@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-name: "[Robotics] Pre-merge workflow"
+name: "[Robotics] CI"
 
 on:
   pull_request:
@@ -13,9 +13,12 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-components:
-    name: "Build (Autonomous Mobile Robots)"
+    name: "Build (AMR)"
     uses: "./.github/workflows/robotics-components.yaml"
 
   # build-pipelines:
@@ -23,5 +26,5 @@ jobs:
   #   uses: "./.github/workflows/robotics-pipelines.yaml"
 
   # build-rvc:
-  #   name: "Build (Robot Vision Control)"
+  #   name: "Build (RVC)"
   #   uses: "./.github/workflows/robotics-rvc.yaml"

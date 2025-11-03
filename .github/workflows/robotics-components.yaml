@@ -33,7 +33,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: check-changes
     steps:
-      - name: Print input path
+      - name: Print changed components
         run: |
           echo "Fast Mapping changed: ${{ needs.check-changes.outputs.fast-mapping-changed }}"
           echo "ITS Planner changed: ${{ needs.check-changes.outputs.its-planner-changed }}"
+          echo "${{ needs.check-changes.outputs }}" | jq .
