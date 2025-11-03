@@ -45,8 +45,8 @@ spec:
           value: {{ .Values.http_proxy | quote }}
         - name: https_proxy
           value: {{ .Values.https_proxy | quote }}
-          - name: no_proxy
-            value: "{{ .Values.no_proxy }},influxdb2, ntpserv,{{ .Release.Name }}-broker,{{ .Release.Name }}-dlstreamer-pipeline-server,{{ .Release.Name }}-grafana,{{ .Release.Name }}-nodered,{{ .Release.Name }}-pgserver,{{ .Release.Name }}-scene,{{ .Release.Name }}-web"
+        - name: no_proxy
+          value: "{{ .Values.no_proxy }},influxdb2, ntpserv,{{ .Release.Name }}-broker,{{ .Release.Name }}-dlstreamer-pipeline-server,{{ .Release.Name }}-grafana,{{ .Release.Name }}-nodered,{{ .Release.Name }}-pgserver,{{ .Release.Name }}-scene,{{ .Release.Name }}-web"
         - name: DBROOT
           value: /workspace
         - name: RUNSECRETS
