@@ -36,6 +36,22 @@ Available pipelines for PCB anomaly detection:
 - **`pcb_anomaly_classification`**: CPU-based anomaly classification pipeline
 - **`pcb_anomaly_classification_gpu`**: GPU-accelerated anomaly classification pipeline with optimized settings
 
+### Recommended Pipeline Parameters
+
+These are the recommended parameters by Edge Benchmarking and Workloads team for workload with similar characteristics. These are configurable parameters that can be adjusted based on your specific requirements:
+
+```
+inference-region=full-frame inference-interval=1 batch-size=8 nireq=2 ie-config="NUM_STREAMS=2" threshold=0.7
+```
+
+**Parameter Descriptions:**
+- `inference-region=full-frame`: Process the entire frame for detection
+- `inference-interval=1`: Run inference on every frame
+- `batch-size=8`: Process 8 frames in a single batch for better GPU utilization
+- `nireq=2`: Number of inference requests to run in parallel
+- `ie-config="NUM_STREAMS=2"`: Intel OpenVINO engine streams configuration
+- `threshold=0.7`: Detection confidence threshold (70%)
+
 ### Steps to run benchmarks
 
 1. **Set up the environment**: Ensure `SAMPLE_APP=pcb-anomaly-detection` is set in your `.env` file

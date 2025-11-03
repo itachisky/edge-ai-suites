@@ -36,6 +36,22 @@ Available pipelines for worker safety gear detection:
 - **`worker_safety_gear_detection`**: CPU-based object detection pipeline for safety gear
 - **`worker_safety_gear_detection_gpu`**: GPU-accelerated object detection pipeline with optimized settings
 
+### Recommended Pipeline Parameters
+
+These are the recommended parameters by Edge Benchmarking and Workloads team for workload with similar characteristics. These are configurable parameters that can be adjusted based on your specific requirements:
+
+```
+inference-region=full-frame inference-interval=1 batch-size=8 nireq=2 ie-config="NUM_STREAMS=2" threshold=0.7
+```
+
+**Parameter Descriptions:**
+- `inference-region=full-frame`: Process the entire frame for detection
+- `inference-interval=1`: Run inference on every frame
+- `batch-size=8`: Process 8 frames in a single batch for better GPU utilization
+- `nireq=2`: Number of inference requests to run in parallel
+- `ie-config="NUM_STREAMS=2"`: Intel OpenVINO engine streams configuration
+- `threshold=0.7`: Detection confidence threshold (70%)
+
 ### Steps to run benchmarks
 
 1. **Set up the environment**: Ensure `SAMPLE_APP=worker-safety-gear-detection` is set in your `.env` file
