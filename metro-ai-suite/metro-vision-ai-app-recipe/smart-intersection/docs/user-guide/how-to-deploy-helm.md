@@ -40,16 +40,31 @@ git clone https://github.com/open-edge-platform/edge-ai-suites.git
 cd edge-ai-suites/metro-ai-suite/metro-vision-ai-app-recipe/
 ```
 
-### Step 2: Configure Proxy Settings (If behind a proxy)
+### Step 2: Configure External IP and Proxy Settings
 
-If you are deploying in a proxy environment, update the values.yaml file with your proxy settings before installation:
+#### Configure External IP (Required)
+
+The Smart Intersection application needs to know your cluster's external IP address for proper certificate generation and CSRF security configuration. Update the external IP in the values.yaml file:
 
 ```bash
-# Edit the values.yml file to add proxy configuration
+# Edit the values.yaml file to set your external IP
 nano ./smart-intersection/chart/values.yaml
 ```
 
-Update the existing proxy configuration in your values.yaml with following values:
+Find the `global.externalIP` section and update it with your actual external IP address:
+
+```yaml
+# Global configuration
+global:
+  # External IP address for certificate generation and CSRF configuration
+  externalIP: "YOUR_EXTERNAL_IP_HERE"
+```
+
+Replace `YOUR_EXTERNAL_IP_HERE` with your actual external IP address where the application will be accessible.
+
+#### Configure Proxy Settings (If behind a proxy)
+
+If you are deploying in a proxy environment, also update the proxy settings in the same values.yaml file:
 
 ```yaml
 http_proxy: "http://your-proxy-server:port"
@@ -61,7 +76,7 @@ Replace `your-proxy-server:port` with your actual proxy server details.
 
 
 
-### Setup Storage Provisioner (For Single-Node Clusters)
+### Step 3: Setup Storage Provisioner (For Single-Node Clusters)
 
 Check if your cluster has a default storage class with dynamic provisioning. If not, install a storage provisioner:
 
@@ -83,7 +98,7 @@ kubectl patch storageclass local-path -p '{"metadata": {"annotations":{"storagec
 kubectl get storageclass
 ```
 
-### Step 3: Deploy the application
+### Step 4: Deploy the application
 
 Now you're ready to deploy the Smart Intersection application with nginx reverse proxy and self-signed certificates:
 
@@ -94,6 +109,13 @@ helm upgrade --install smart-intersection ./smart-intersection/chart \
   --set global.storageClassName="" \
   -n smart-intersection
 
+# Alternatively, you can override the external IP during installation:
+# helm upgrade --install smart-intersection ./smart-intersection/chart \
+#   --create-namespace \
+#   --set global.storageClassName="" \
+#   --set global.externalIP="YOUR_EXTERNAL_IP" \
+#   -n smart-intersection
+
 # Wait for all pods to be ready
 kubectl wait --for=condition=ready pod --all -n smart-intersection --timeout=300s
 ```
@@ -101,6 +123,8 @@ kubectl wait --for=condition=ready pod --all -n smart-intersection --timeout=300
 > **Note**: Using `global.storageClassName=""` makes the deployment use whatever default storage class exists on your cluster. This works for both single-node and multi-node setups.
 
 > **Note**: The application now uses self-signed certificates generated directly in Kubernetes secrets, providing HTTPS access without requiring cert-manager. This eliminates webhook validation issues and simplifies deployment.
+
+> **Important**: Make sure you have configured the correct external IP address in Step 2, as this is required for proper certificate generation and web application security configuration.
 
 ## Access Application Services
 
