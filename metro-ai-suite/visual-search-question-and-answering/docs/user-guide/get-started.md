@@ -10,7 +10,9 @@
 -    Install Docker Compose: [Installation Guide](https://docs.docker.com/compose/install/).
 -    Install Intel Client GPU driver: [Installation Guide](https://dgpu-docs.intel.com/driver/client/overview.html).
 
-### Step 1: Build
+### Step 1: Get the docker images
+
+#### Option 1: build from source
 Clone the source code repository if you don't have it
 
 ```bash
@@ -36,6 +38,9 @@ docker build -t retriever-milvus:latest --build-arg https_proxy=$https_proxy --b
 cd vlm-openvino-serving
 docker build -t vlm-openvino-serving:latest --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy --build-arg no_proxy=$no_proxy -f docker/Dockerfile .
 
+cd ../multimodal-embedding-serving
+docker build -t multimodal-embedding-serving:latest --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy --build-arg no_proxy=$no_proxy -f docker/Dockerfile .
+
 cd ../../..
 ```
 
@@ -45,24 +50,29 @@ Run the command to build image for the application:
 docker build -t visual-search-qa-app:latest --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy --build-arg no_proxy=$no_proxy -f visual-search-question-and-answering/src/Dockerfile .
 ```
 
+#### Option 2: use remote prebuilt images
+Set a remote registry by exporting environment variables:
+
+```bash
+export REGISTRY="intel/"  
+export TAG="latest"
+```
+
 ### Step 2: Prepare host directories for models and data
 
 ```
-mkdir -p $HOME/.cache/huggingface
-mkdir -p $HOME/models
 mkdir -p $HOME/data
 ```
 
 If you would like to test the application with a demo dataset, please continue and follow the instructions in the [Try with a demo dataset](#try-with-a-demo-dataset) section later in this guide.
 
-Otherwise, if you would like to use your own data (images and video), make sure to put them all in the created data directory (`$HOME/data` in the example commands above) BEFORE deploying the services.
-
+Otherwise, if you would like to use your own data (images and video), make sure to put them all in the created data directory (`$HOME/data` in the example commands above) and make sure the created path matches with the `HOST_DATA_PATH` variable in `deployment/docker-compose/env.sh` BEFORE deploying the services.
 
 Note: supported media types: jpg, png, mp4
 
 ### Step 3: Deploy
 
-#### Option1 (**Recommended**): Deploy the application together with the Milvus Server
+#### Option1 (**Recommended**): Deploy with docker compose
 
 1. Go to the deployment files
 
@@ -71,31 +81,18 @@ Note: supported media types: jpg, png, mp4
     cd deployment/docker-compose/
     ```
 
-2.  Set up environment variables
+2.  Set up environment variables, note that you need to set models first
 
     ``` bash
-    source env.sh
+    export EMBEDDING_MODEL_NAME="CLIP/clip-vit-h-14" # Replace with other models if needed
+    export VLM_MODEL_NAME="Qwen/Qwen2.5-VL-7B-Instruct" # Replace with other models if needed
+    source env.sh 
     ```
 
-When prompting `Please enter the LOCAL_EMBED_MODEL_ID`, choose one model name from table below and input
-
-##### Supported Local Embedding Models
-
-| Model Name                          | Search in English | Search in Chinese | Remarks|
-|-------------------------------------|----------------------|---------------------|---------------|
-| CLIP-ViT-H-14                        | Yes                  | No                 |            |
-| CN-CLIP-ViT-H-14              | Yes                  | Yes                  | Supports search text query in Chinese       | 
-
-When prompting `Please enter the VLM_MODEL_NAME`, choose one model name from table below and input
-
-##### Supported VLM Models
-
-| Model Name                          | Single Image Support | Multi-Image Support | Video Support | Hardware Support                |
-|-------------------------------------|----------------------|---------------------|---------------|---------------------------------|
-| Qwen/Qwen2.5-VL-7B-Instruct         | Yes                  | Yes                 | Yes           | GPU                       |
+    **Important**: You must set `EMBEDDING_MODEL_NAME` and `VLM_MODEL_NAME` before running `env.sh`. See [multimodal-embedding-serving's supported models](https://github.com/open-edge-platform/edge-ai-libraries/blob/main/microservices/multimodal-embedding-serving/docs/user-guide/supported_models.md) for available embedding models, and [vlm-openvino-serving's supported models](https://github.com/open-edge-platform/edge-ai-libraries/blob/main/microservices/vlm-openvino-serving/docs/user-guide/Overview.md#models-supported) for available vlm models.
 
 
-You might want to pay some attention to `DEVICE` and `VLM_DEVICE` in `env.sh`. By default, they are both `GPU.1`, which applies to a standard hardware platform with an integrated GPU as `GPU.0` and the discrete GPU would be `GPU.1`. You can refer to [OpenVINO's query device sample](https://docs.openvino.ai/2024/learn-openvino/openvino-samples/hello-query-device.html) to learn more about how to identify which GPU index should be set.
+   You might want to pay some attention to `DEVICE`, `VLM_DEVICE` and `EMBEDDING_DEVICE` in `env.sh`. By default, they are `GPU.1`, which applies to a standard hardware platform with an integrated GPU as `GPU.0` and a discrete GPU as `GPU.1`. You can refer to [OpenVINO's query device sample](https://docs.openvino.ai/2024/learn-openvino/openvino-samples/hello-query-device.html) to learn more about how to identify which GPU index should be set.
 
 3.  Deploy with docker compose
 
@@ -114,35 +111,26 @@ dataprep-visualdata-milvus   "uvicorn dataprep_vi…"   dataprep-visualdata-milv
 milvus-etcd                  "etcd -advertise-cli…"   milvus-etcd                  running (healthy)   2379-2380/tcp
 milvus-minio                 "/usr/bin/docker-ent…"   milvus-minio                 running (healthy)   0.0.0.0:9000-9001->9000-9001/tcp, :::9000-9001->9000-9001/tcp
 milvus-standalone            "/tini -- milvus run…"   milvus-standalone            running (healthy)   0.0.0.0:9091->9091/tcp, 0.0.0.0:19530->19530/tcp, :::9091->9091/tcp, :::19530->19530/tcp
+multimodal-embedding         gunicorn -b 0.0.0.0:8000 - ...   Up (unhealthy)   0.0.0.0:9777->8000/tcp,:::9777->8000/tcp                                              
 retriever-milvus             "uvicorn retriever_s…"   retriever-milvus             running (healthy)   0.0.0.0:7770->7770/tcp, :::7770->7770/tcp
 visual-search-qa-app         "streamlit run app.p…"   visual-search-qa-app         running (healthy)   0.0.0.0:17580->17580/tcp, :::17580->17580/tcp
 vlm-openvino-serving         "/bin/bash -c '/app/…"   vlm-openvino-serving         running (healthy)   0.0.0.0:9764->8000/tcp, :::9764->8000/tcp
 ```
 
-#### Option2: Deploy the application with the Milvus Server deployed separately
-If you have customized requirements for the Milvus Server, you may start the Milvus Server separately and run the commands for visual search and QA services only
-
-``` bash
-cd visual-search-question-and-answering/
-cd deployment/docker-compose/
-
-source env.sh # refer to Option 1 for model selection
-
-docker compose -f compose.yaml up -d
-```
-
-#### Option3: Deploy the application in Kubernetes
+#### Option2: Deploy in Kubernetes
 
 Please refer to [Deploy with helm](./deploy-with-helm.md) for details.
 
 
 ## Try with a demo dataset
-*Applicable to deployment with Option 1 or 2 (docker compose deployment).
+
+*Applicable to deployment with Option 1 (docker compose deployment).
+
 ### Prepare demo dataset [DAVIS](https://davischallenge.org/davis2017/code.html)
 
 Create a `prepare_demo_dataset.sh` script as following
 ```
-CONTAINER_IDS=$(docker ps -a --filter "ancestor=dataprep-visualdata-milvus" -q)
+CONTAINER_IDS=$(docker ps -a --filter "status=running" -q | xargs -r docker inspect --format '{{.Config.Image}} {{.Id}}' | grep "dataprep-visualdata-milvus" | awk '{print $2}')
 
 # Check if any containers were found
 if [ -z "$CONTAINER_IDS" ]; then
@@ -167,9 +155,9 @@ In order to save time, only a subset of the dataset would be processed. They are
 This script only works when the `dataprep-visualdata-milvus` service is available.
 
 ### Use it on Web UI
-Go to `http://{host_ip}:17580` with a browser. Put the exact path to the subset of demo dataset (usually`/home/user/data/DAVIS/subset`, may vary according to your local username) into `file directory on host`. Click `UpdataDB`. Wait for a while and click `showInfo`. You should see that the number of processed files is 25.
+Go to `http://{host_ip}:17580` with a browser. Put the exact path to the subset of demo dataset (usually`/home/user/data/DAVIS/subset`, may vary according to your local username) into `file directory on host`. Click `UpdataDB` and wait for the uploading done.
 
-Try searching with prompt `tractor`, see if the results are correct.
+Try searching with query text `tractor`, see if the results are correct.
 
 Expected valid inputs are "car-race", "deer", "guitar-violin", "gym", "helicopter", "carousel", "monkeys-trees", "golf", "rollercoaster", "horsejump-stick", "planes-crossing", "tractor"
 
@@ -236,6 +224,32 @@ docker logs <container_id>
    ```
 
 **Note**: Removing the `ov-models` volume will delete any previously cached/converted models. The VLM service will automatically re-download and convert models on the next startup, which may take additional time depending on your internet connection and the model size.
+
+### Embedding Model Changed Issues
+
+**Problem**: Dataprep microservice API fails and "mismatch" is found in logs.
+
+**Cause**: If the application is re-deployed with a different embedding model set for the multimodal embedding service other than the previous deployment, it is possible that the embedding dimension has changed as well, leading to a vector dimension mismatch in vector DB.
+
+**Solution**:
+1. Stop the running application:
+   ```bash
+   docker compose -f compose_milvus.yaml down
+   ```
+
+2. Remove the existing Milvus volumes:
+   ```bash
+   sudo rm -rf /volumes/milvus
+   sudo rm -rf /volumes/minio
+   sudo rm -rf /volumes/etcd
+   ```
+
+3. Restart the application:
+   ```bash
+   source env.sh
+   docker compose -f compose_milvus.yaml up -d
+   ```
+
 
 ## Known Issues
 
