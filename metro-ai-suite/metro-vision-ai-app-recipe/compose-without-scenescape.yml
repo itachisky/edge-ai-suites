@@ -139,6 +139,7 @@ services:
     volumes:
       - "./${SAMPLE_APP}/src/node-red:/data"
       - "./${SAMPLE_APP}/src/dlstreamer-pipeline-server/videos:/data/public/videos"
+      - node-red-node-modules:/data/node_modules
     ipc: "none"
     entrypoint: [ "/bin/bash", "-c", "/data/install_package.sh && /usr/src/node-red/entrypoint.sh" ]
     user: root
@@ -188,3 +189,4 @@ volumes:
       device: tmpfs
   prometheus_data:
     driver: local
+  node-red-node-modules:
