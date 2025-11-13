@@ -208,7 +208,7 @@ services:
     restart: on-failure:5
 
   pgserver:
-    image: postgres:15
+    image: postgres:17.6
     env_file:
       - ./${SAMPLE_APP}/src/secrets/pgserver/pgserver.env
     networks:
