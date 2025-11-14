@@ -416,11 +416,29 @@ void PoseTracking::resetTargetPose()
 
 bool PoseTracking::getCommandFrameTransform(Eigen::Isometry3d & transform)
 {
-    auto robot_link_command_frame_ = "ee_link";
-    auto planning_frame = "base_link"; // or planning_frame_
-
     auto current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
-    transform = current_state_->getGlobalLinkTransform(planning_frame).inverse() *
-        current_state_->getGlobalLinkTransform(robot_link_command_frame_);
+
+    // Get the IK solver instance to retrieve base and tip frames
+    const auto joint_model_group = current_state_->getJointModelGroup(manipulator_move_group_name_);
+    if (!joint_model_group)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER, "Could not find joint model group: " << manipulator_move_group_name_);
+        return false;
+    }
+
+    const auto ik_solver = joint_model_group->getSolverInstance();
+    if (!ik_solver)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER, "No IK solver found for group: " <<  manipulator_move_group_name_);
+        return false;
+    }
+
+    // Get both base frame (planning frame) and tip frame (end effector) from the IK solver configuration
+    const std::string& ik_base_frame = ik_solver->getBaseFrame();
+    const std::string& ik_tip_frame = ik_solver->getTipFrame();
+
+    // Compute transform from IK base frame to end effector frame
+    transform = current_state_->getGlobalLinkTransform(ik_base_frame).inverse() *
+        current_state_->getGlobalLinkTransform(ik_tip_frame);
     return true;
 }
