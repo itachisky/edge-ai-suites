@@ -80,6 +80,10 @@ spec:
         args:
         - >
           {{- tpl (include "web.startup-script" .) . | nindent 10 }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
       - name: pgserver-media
         persistentVolumeClaim:

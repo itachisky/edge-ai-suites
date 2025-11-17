@@ -45,6 +45,10 @@ spec:
           mountPath: /data
         securityContext:
           allowPrivilegeEscalation: false
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
       - name: dev-fuse
         hostPath:
