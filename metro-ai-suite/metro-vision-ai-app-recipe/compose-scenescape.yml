@@ -222,7 +222,7 @@ services:
       - "5432:5432"
 
   web:
-    image: scenescape-manager:2025.2-rc1
+    image: ghcr.io/open-edge-platform/edge-ai-libraries/intel/scenescape-manager:2025.2-rc2
     init: true
     networks:
       scenescape:
@@ -282,7 +282,7 @@ services:
     restart: on-failure:5
 
   scene:
-    image: scenescape-controller:2025.2-rc1
+    image: ghcr.io/open-edge-platform/edge-ai-libraries/intel/scenescape-controller:2025.2-rc2
     init: true
     environment:
       - http_proxy=${http_proxy}
