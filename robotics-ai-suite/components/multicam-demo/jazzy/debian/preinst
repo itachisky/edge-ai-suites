@@ -1,5 +1,5 @@
 #!/bin/sh
-# preinst script 
+# preinst script
 #
 # see: dh_installdeb(1)
 
@@ -20,7 +20,7 @@ echo "Intel oneapi version $oneapi_ver"
 
 case "$1" in
     install|upgrade)
-	[ -d /opt/ros/jazzy/share/pyrealsense2-ai-demo/venv ] && rm -rf /opt/ros/humjazzyble/share/pyrealsense2-ai-demo/venv
+	[ -d /opt/ros/jazzy/share/pyrealsense2-ai-demo/venv ] && rm -rf /opt/ros/jazzy/share/pyrealsense2-ai-demo/venv
 	if command -v virtualenv > /dev/null; then
 	    virtualenv -p python3 /opt/ros/jazzy/share/pyrealsense2-ai-demo/venv
 	    # shellcheck disable=SC1091
