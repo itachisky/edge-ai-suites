@@ -98,10 +98,10 @@ services:
       DOCKER_INFLUXDB_INIT_RETENTION: 1w
       http_proxy: ${http_proxy}
       https_proxy: ${https_proxy}
-      no_proxy: ${no_proxy},.scenescape.intel.com,influxdb2
+      no_proxy: ${no_proxy},${HOST_IP},.scenescape.intel.com,influxdb2,grafana,localhost,127.0.0.1
       HTTP_PROXY: ${http_proxy}
       HTTPS_PROXY: ${https_proxy}
-      NO_PROXY: ${no_proxy},.scenescape.intel.com,influxdb2
+      NO_PROXY: ${no_proxy},${HOST_IP},.scenescape.intel.com,influxdb2,grafana,localhost,127.0.0.1
     secrets:
       - influxdb2-admin-username
       - influxdb2-admin-password
@@ -128,10 +128,10 @@ services:
     environment:
       http_proxy: ${http_proxy}
       https_proxy: ${https_proxy}
-      no_proxy: ${no_proxy},${HOST_IP},.scenescape.intel.com,influxdb2
+      no_proxy: ${no_proxy},${HOST_IP},.scenescape.intel.com,influxdb2,localhost,127.0.0.1
       HTTP_PROXY: ${http_proxy}
       HTTPS_PROXY: ${https_proxy}
-      NO_PROXY: ${no_proxy},${HOST_IP},.scenescape.intel.com,influxdb2
+      NO_PROXY: ${no_proxy},${HOST_IP},.scenescape.intel.com,influxdb2,localhost,127.0.0.1
       GF_SERVER_ROOT_URL: http://localhost/grafana/
       GF_SERVER_SERVE_FROM_SUB_PATH: true
       GF_PANELS_DISABLE_SANITIZE_HTML: true
