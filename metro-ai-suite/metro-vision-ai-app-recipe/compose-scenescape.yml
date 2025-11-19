@@ -58,7 +58,7 @@ services:
       - scenescape
     volumes:
       - ./${SAMPLE_APP}/src/node-red/flows.json:/data/flows.json
-      - ./${SAMPLE_APP}/src/node-red/flows_cred.json:/data/flows_cred.json
+      - ./${SAMPLE_APP}/src/node-red/flows_cred.json:/tmp/flows_cred.json
       - ./${SAMPLE_APP}/src/node-red/settings.js:/data/settings.js
       - ./${SAMPLE_APP}/src/node-red/install_package.sh:/data/install_package.sh
       - node-red-node-modules:/data/node_modules
@@ -76,7 +76,8 @@ services:
         "/bin/bash",
         "-e",
         "-c",
-        "sed -i \"s/<influx-api-token>/$(cat /run/secrets/influxdb2-admin-token)/g\" /data/flows_cred.json && \
+        "cp /tmp/flows_cred.json /data/flows_cred.json && \
+        sed -i \"s/<influx-api-token>/$(cat /run/secrets/influxdb2-admin-token)/g\" /data/flows_cred.json && \
         bash /data/install_package.sh && \
         /usr/src/node-red/entrypoint.sh",
       ]
@@ -165,9 +166,9 @@ services:
     devices:
       - "/dev/dri:/dev/dri"
     device_cgroup_rules:
-      - 'c 189:* rmw'
-      - 'c 209:* rmw'
-      - 'a 189:* rwm'
+      - "c 189:* rmw"
+      - "c 209:* rmw"
+      - "a 189:* rwm"
     group_add:
       - "109"
       - "110"
