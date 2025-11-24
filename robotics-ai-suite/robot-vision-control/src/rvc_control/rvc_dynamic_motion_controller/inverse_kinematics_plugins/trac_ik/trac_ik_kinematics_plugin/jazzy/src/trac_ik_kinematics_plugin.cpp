@@ -57,7 +57,7 @@ bool TRAC_IKKinematicsPlugin::initialize(const rclcpp::Node::SharedPtr &node,
     const std::vector<std::string> &tip_frames,
     double search_discretization)
 {
- 
+
 
   node_ = node;
   storeValues(robot_model, group_name, base_name, tip_frames, search_discretization);
@@ -380,7 +380,7 @@ bool TRAC_IKKinematicsPlugin::searchPositionIK(const geometry_msgs::msg::Pose &i
   (void)timeout;
   (void)consistency_limits;
   (void)options;
-  
+
   if (!active_)
   {
     RCLCPP_ERROR(rclcpp::get_logger("tracikplug"),"kinematics not active");
@@ -412,8 +412,8 @@ bool TRAC_IKKinematicsPlugin::searchPositionIK(const geometry_msgs::msg::Pose &i
     bounds.rot.z(std::numeric_limits<float>::max());
   }
 
-    auto start_time = std::chrono::time_point<std::chrono::steady_clock, std::chrono::duration<double>>(                                                                                     
-        std::chrono::steady_clock::now());    
+    auto start_time = std::chrono::time_point<std::chrono::steady_clock, std::chrono::duration<double>>(
+        std::chrono::steady_clock::now());
   int rc = ik_solver->CartToJnt(in, frame, out,start_time, bounds);
 
 

@@ -36,8 +36,8 @@ RobotiqSensorBroadcaster::RobotiqSensorBroadcaster() :
 {
 }
 
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotiqSensorBroadcaster::on_init() 
-{ 
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn RobotiqSensorBroadcaster::on_init()
+{
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 

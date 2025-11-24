@@ -47,7 +47,7 @@ namespace rvc_panel
 {
 void RVCPanel::setGUI()
 {
-    std::string icon_path = ament_index_cpp::get_package_share_directory( "rvc_panel_rviz2_plugin") + "/icons/";        
+    std::string icon_path = ament_index_cpp::get_package_share_directory( "rvc_panel_rviz2_plugin") + "/icons/";
 
     const QSize sliderSize(76,40);
     const QSize buttonSize(110,50);
@@ -68,10 +68,10 @@ void RVCPanel::setGUI()
 //======
     buttonsVerticalLayout = new QVBoxLayout();
     buttonsVerticalLayout->setObjectName(QString::fromUtf8("buttonsVerticalLayout"));
-    
+
     EnableRobotControllerButton = new QPushButton(verticalLayoutWidget);
     EnableRobotControllerButton->setObjectName(QString::fromUtf8("EnableRobotControllerButton"));
-    
+
 
     EnableRobotControllerButton->setCheckable(true);
     EnableRobotControllerButton->setChecked(false);
@@ -94,9 +94,9 @@ void RVCPanel::setGUI()
     RCLCPP_INFO(rclcpp::get_logger("rvizPlugin"), " icon %s", offIcon.c_str() );
     icon.addFile(QString::fromUtf8(offIcon.c_str()), QSize(), QIcon::Normal, QIcon::Off);
     icon.addFile(QString::fromUtf8(onIcon.c_str()), QSize(), QIcon::Normal, QIcon::On);
-    
-    
-    
+
+
+
     buttonsVerticalLayout->addWidget(EnableRobotControllerButton);
 
     EnableFullCycleButton = new QPushButton(verticalLayoutWidget);
@@ -107,8 +107,8 @@ void RVCPanel::setGUI()
     EnableFullCycleButton->setIconSize(sliderSize);
     EnableFullCycleButton->setFlat(true);
     EnableFullCycleButton->setStyleSheet("QPushButton {border-style: outset; text-align:left;  border-width: 0px;}");
-    
-    
+
+
     buttonsVerticalLayout->addWidget(EnableFullCycleButton);
 
 
@@ -157,7 +157,7 @@ void RVCPanel::setGUI()
     RobotSpeedLabel->setAlignment(Qt::AlignLeft);
     robotSpeedVerticalLayout->addWidget(RobotSpeedLabel);
 
-  
+
 
     QLabel * intelIcon = new QLabel(verticalLayoutWidget);
     intelIcon->setAlignment(Qt::AlignRight);
@@ -168,9 +168,9 @@ void RVCPanel::setGUI()
     //    intelIcon->setScaledContents(true);
     intelIcon->setAlignment(Qt::AlignBottom|Qt::AlignHCenter);
     robotSpeedVerticalLayout->addWidget(intelIcon);
-    
 
-    
+
+
     horizontalLayoutMain->addLayout(robotSpeedVerticalLayout);
 
     //=====
@@ -199,18 +199,18 @@ void RVCPanel::setGUI()
     sizePolicy.setHorizontalStretch(0);
     sizePolicy.setVerticalStretch(0);
     sizePolicy.setHeightForWidth(RobotSpeedLabel->sizePolicy().hasHeightForWidth());
-    TopicLabel->setSizePolicy(sizePolicy);        
+    TopicLabel->setSizePolicy(sizePolicy);
     TopicLabel->setAlignment(Qt::AlignCenter);
 
     videoVerticalLayout->addWidget(TopicLabel);
 
     verticalLayout->addLayout(videoVerticalLayout);
-    
+
     setLayout(verticalLayout);
 
     this->setWindowTitle(QApplication::translate("Dialog", "Dialog", nullptr));
     TopicLabel->setText("No Topic set");
- 
+
     render_panel_->resize(640, 480);
 
     connect(EnableRobotControllerButton, SIGNAL(toggled(bool)), this, SLOT(enableRobotControllerToggled(bool)));
@@ -268,7 +268,7 @@ void RVCPanel::setupScreenRectangle()
 
 void RVCPanel::onInitialize()
 {
-    RCLCPP_INFO(rclcpp::get_logger("rvizPlugin"), " RVCPanel onInitialize" );    
+    RCLCPP_INFO(rclcpp::get_logger("rvizPlugin"), " RVCPanel onInitialize" );
     this->resize(940,980);
     this->setupScreenRectangle();
     this->setGUI();
@@ -307,11 +307,11 @@ void RVCPanel::onInitialize()
         });
 }
 
-void RVCPanel::settingsCallback ( gui_settings::msg::GuiSettingsMsg::SharedPtr  msg )                                 
-{                                                                                                                     
-                                                                                                                      
-    enableController = msg->enable_controller;                                                                        
-    robotSpeed = msg->robot_speed;                                                                                    
+void RVCPanel::settingsCallback ( gui_settings::msg::GuiSettingsMsg::SharedPtr  msg )
+{
+
+    enableController = msg->enable_controller;
+    robotSpeed = msg->robot_speed;
     safePosition = msg->enable_safe_position;
     enableFullcycle = msg->enable_fullcycle;
     enableTrackingOnCloseGripper = msg->enable_tracking_on_close_gripper;
@@ -356,7 +356,7 @@ void RVCPanel::mySpin()
                  transport, qos_profile);
         currentSubscription = 1;
 //        resizeEvent(nullptr);
-        TopicLabel->setText("AI Object Detection");                
+        TopicLabel->setText("AI Object Detection");
         RCLCPP_INFO(rclcpp::get_logger("rvizPlugin"),"Switching topic to annotated_image...DONE");
     }
     else if ( inferenceDetectionPublishers == 0 && realsenseRgbPublishers > 0 && currentSubscription != 0)
@@ -370,7 +370,7 @@ void RVCPanel::mySpin()
         TopicLabel->setText("Realsense RGB Camera");
         RCLCPP_INFO(rclcpp::get_logger("rvizPlugin"),"Switching topic to /camera/color/image_raw...DONE");
     }
-        
+
 //     RCLCPP_INFO(rclcpp::get_logger("rvizPlugin"),"Current subscription topic: %s",m_sub_imgs->get_topic_name());
    //RCLCPP_INFO(rclcpp::get_logger("rvizPlugin"),"END");
 }
@@ -419,13 +419,13 @@ void RVCPanel::topic_callback(sensor_msgs::msg::Image::ConstSharedPtr msg)
     texture_->addMessage(std::move(msg));
     texture_->update();
     static bool first =true;
-    
+
     if (first)
     {
         first = false;
         resizeEvent(nullptr);
     }
-} 
+}
 void RVCPanel::robotSpeedChanged(int value)
 {
     robotSpeed = 20.0 - (value / 5.0);
@@ -488,7 +488,7 @@ void RVCPanel::save(rviz_common::Config config) const
 void RVCPanel::load(const rviz_common::Config & config)
 {
   rviz_common::Panel::load(config);
-#if 0  
+#if 0
   QString topic;
   if (config.mapGetString("Topic", &topic)) {
     output_topic_editor_->setText(topic);

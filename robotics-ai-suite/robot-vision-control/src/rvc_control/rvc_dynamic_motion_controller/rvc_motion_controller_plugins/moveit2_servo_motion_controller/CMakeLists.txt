@@ -25,7 +25,7 @@ else()
 endif()
 
 add_library(${PROJECT_NAME} SHARED
-    ${ROS_DISTRO}/src/moveit2_pose_tracking.cpp  
+    ${ROS_DISTRO}/src/moveit2_pose_tracking.cpp
     ${ROS_DISTRO}/src/moveit2_servo_motion_controller.cpp
 )
 

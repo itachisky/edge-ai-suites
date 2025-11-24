@@ -125,13 +125,13 @@ bool Moveit2ServoMotionController::init ( rclcpp::Node::SharedPtr node )
 
     std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
 
-    for (auto it = begin (collision_boxes); it != end (collision_boxes); ++it) 
+    for (auto it = begin (collision_boxes); it != end (collision_boxes); ++it)
     {
         RCLCPP_ERROR( LOGGER, "============> DECLARING %s ", it->c_str());
         node->declare_parameter<std::vector<double>>(*it, std::vector<double>());
         std::vector<double> box3d =  node->get_parameter(*it).as_double_array();
 
-        collision_objects.push_back ( 
+        collision_objects.push_back (
             createCollisionBox (*it, box3d.at(0),box3d.at(1),box3d.at(2),box3d.at(3),box3d.at(4),box3d.at(5)));
 
     }
@@ -164,7 +164,7 @@ bool Moveit2ServoMotionController::init ( rclcpp::Node::SharedPtr node )
 
     if ( move_to_pose_thread == nullptr )
     {
-        move_to_pose_thread = std::make_shared<std::thread> ( [this] 
+        move_to_pose_thread = std::make_shared<std::thread> ( [this]
         {
             pthread_t this_thread = pthread_self();
             pthread_setname_np(this_thread, "PSmove");

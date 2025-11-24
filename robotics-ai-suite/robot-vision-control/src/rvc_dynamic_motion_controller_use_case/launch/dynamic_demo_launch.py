@@ -162,7 +162,7 @@ def launch_setup(context, *args, **kwargs):
     )
     # Use external_control.urscript for Jazzy, ros_control.urscript for Humble
     script_filename = PathJoinSubstitution(
-        [FindPackageShare("ur_robot_driver"), "resources", 
+        [FindPackageShare("ur_robot_driver"), "resources",
          "external_control.urscript" if ros_distro == "jazzy" else "ros_control.urscript"]
     )
     input_recipe_filename = PathJoinSubstitution(

@@ -55,31 +55,31 @@ public:
     std::vector<hardware_interface::CommandInterface> export_command_interfaces() final;
 
     /**
-     * 
-     * @param previous_state 
+     *
+     * @param previous_state
      * @return hardware_interface::CallbackReturn returns status of activation
      */
     hardware_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) final;
     /**
      * @brief Called by framework on driver deactivation
-     * 
-     * @param previous_state 
+     *
+     * @param previous_state
      * @return hardware_interface::CallbackReturn returns status of deactivation
      */
     hardware_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) final;
-    
+
     // removing get_name as the function is no longer virtual, but defined in the base class
 
     /**
      * @brief read API implementation
-     * 
+     *
      * @return return_type return to the framework if operation was successful
      */
 
     return_type read(const rclcpp::Time &, const rclcpp::Duration &) final;
     /**
      * @brief write API implementation
-     * 
+     *
      * @return return_type return to the framework if operation was successful
      */
     return_type write(const rclcpp::Time &, const rclcpp::Duration &) final;

@@ -190,7 +190,7 @@ public:
     double search_discretization);
 
   virtual bool supportsGroup(const moveit::core::JointModelGroup *,
-                             std::string *error_text_out = 0) const 
+                             std::string *error_text_out = 0) const
   {
     (void)error_text_out;
     return true;
