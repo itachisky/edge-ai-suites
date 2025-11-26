@@ -36,8 +36,7 @@ application.
 
 - Added Nginx reverse proxy server, updated npm packages and python packages
 - Fixed high coverity issues and added healthchecks for compose and helm deployment
-- DL Streamer version upgraded to 2025.2
-- DL Streamer Pipeline Server version upgraded to 2025.2
+- DL Streamer and DL Streamer Pipeline Server versions upgraded to 2025.2
 
 ## Version 1.0.1
 
