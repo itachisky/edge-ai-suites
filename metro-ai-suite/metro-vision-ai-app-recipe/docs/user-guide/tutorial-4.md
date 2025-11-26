@@ -1,6 +1,31 @@
-# AI Crowd Analytics Tutorial
+# AI Crowd Analytics through Vibe Coding
 
-This tutorial walks you through creating an AI-powered crowd analytics system that automatically detects vehicles and identifies whether they form a "crowd" (closely grouped vehicles) or are scattered individually. The system leverages Intel's DLStreamer framework with pre-trained AI models to process video streams and analyze vehicle clustering patterns in real-time.
+This tutorial walks you through leveraging an existing 'Metro Vision AI App Recipe powered application' and turning it into a 'new application' by 'vibe coding', all while the underlying application architecture remains the same.
+
+## Metro Vision AI App Recipe Architecture
+
+![Metro Vision AI App Recipe Architecture](_images/metro-vision-ai-app-recipe-architecture.drawio.svg)
+
+### Key Features of this architecture
+
+- **Vision Analytics Pipeline:** Detect and classify objects using pre-configured AI models. Customize parameters such as thresholds and object types without requiring additional coding.
+- **Integration with MQTT, Node-RED, and Grafana:** Facilitates efficient message handling, real-time monitoring and business logic integration, and insightful data visualization.
+- **User-Friendly:** Simplifies configuration and operation through prebuilt scripts and configuration files.
+
+### Key Components of this architecture
+
+- **DL Streamer Pipeline Server:** Processes video frames, extracts metadata, and integrates AI inference results. It runs the Vision Analytics Pipeline mentioned above
+- **Mosquitto MQTT Broker:** Facilitates message communication between components like Node-RED and DL Streamer Pipeline Server using the MQTT protocol.
+- **Node-RED:** A low-code platform for setting up application-specific rules, running application business logic and triggering MQTT-based events.
+- **Grafana Dashboard:** Serves as application UI. A monitoring and visualization tool for analyzing pipeline metrics, logs, and other performance data.
+
+This architecture is capable of building any typical Vision AI sample application with minimal effort.
+
+## How to leverage an existing 'Metro Vision AI App Recipe powered application' and turn it into a 'new application' by 'vibe coding'
+
+The below process is recommended to leverage an existing 'Metro Vision AI App Recipe powered application' and turn it into a 'new application' by 'vibe coding':
+
+- 
 
 
 By following this guide, you will learn how to:
