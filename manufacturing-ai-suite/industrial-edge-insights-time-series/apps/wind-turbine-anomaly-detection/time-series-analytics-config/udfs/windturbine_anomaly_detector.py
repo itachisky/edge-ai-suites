@@ -19,7 +19,7 @@ from kapacitor.udf import udf_pb2
 import numpy as np
 import requests
 from sklearnex import patch_sklearn, config_context
-patch_sklearn()
+# patch_sklearn()
 from sklearn.linear_model import LinearRegression
 
 warnings.filterwarnings(
