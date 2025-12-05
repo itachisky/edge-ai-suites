@@ -1,5 +1,7 @@
-# SPDX-License-Identifier: Apache-2.0
 # Copyright (C) 2025 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
 cmake_minimum_required(VERSION 3.5)
 project(wandering_app)
 
@@ -63,6 +65,8 @@ install(DIRECTORY
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
+  list(APPEND AMENT_LINT_AUTO_EXCLUDE ament_cmake_copyright ament_cmake_uncrustify)
+
   find_package(ament_cmake_gtest REQUIRED)
   find_package(launch_testing_ament_cmake)
 
@@ -115,14 +119,14 @@ if(FUZZTEST_FUZZING_MODE)
   ament_target_dependencies(wanderingLib ${dependencies})
 
   add_executable(
-     fuzz_mapengine
-     tests/fuzzing/fuzz_mapengine.cpp
+    fuzz_mapengine
+    tests/fuzzing/fuzz_mapengine.cpp
   )
 
   target_link_libraries(
-     fuzz_mapengine
-     PRIVATE
-     wanderingLib
+    fuzz_mapengine
+    PRIVATE
+    wanderingLib
   )
   link_fuzztest(fuzz_mapengine)
 endif()
