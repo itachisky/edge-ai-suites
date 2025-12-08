@@ -26,6 +26,7 @@ jobs:
       its-planner-changed: ${{ steps.filter.outputs.its-planner-location || inputs.rebuild-all }}
       multicam-demo-changed: ${{ steps.filter.outputs.multicam-demo-location || inputs.rebuild-all }}
       object-detection-changed: ${{ steps.filter.outputs.object-detection-location || inputs.rebuild-all }}
+      simulations-changed: ${{ steps.filter.outputs.simulations-location || inputs.rebuild-all }}
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
         with:
@@ -46,6 +47,8 @@ jobs:
               - 'robotics-ai-suite/components/multicam-demo/**'
             object-detection-location:
               - 'robotics-ai-suite/components/object-detection/**'
+            simulations-location:
+              - 'robotics-ai-suite/components/simulations/**'
 
   fast-mapping:
     name: "Fast Mapping"
@@ -76,3 +79,9 @@ jobs:
     needs: check-changes
     if: ${{ needs.check-changes.outputs.object-detection-changed == 'true' }}
     uses: "./.github/workflows/robotics-components-object-detection.yaml"
+
+  simulations:
+    name: "Simulations"
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.simulations-changed == 'true' }}
+    uses: "./.github/workflows/robotics-components-simulations.yaml"
