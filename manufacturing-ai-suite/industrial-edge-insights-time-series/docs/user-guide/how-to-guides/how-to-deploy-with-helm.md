@@ -17,9 +17,14 @@ This guide provides step-by-step instructions for deploying the Industrial Edge 
 
 Choose **one** of the following approaches to get the Helm charts:
 
+<!--hide_directive
 ::::{tab-set}
 :::{tab-item} **Wind Turbine Anomaly Detection**
 :sync: tab1
+
+::::
+:::
+hide_directive-->
 
 **Option A: Download the Helm charts**
 
@@ -105,9 +110,14 @@ Choose **one** of the following approaches to get the Helm charts:
 > 2. Note the `helm install` command fails if the above required fields are not populated
 >    as per the rules called out in `values.yaml` file.
 
+<!--hide_directive
 ::::{tab-set}
 :::{tab-item} **Wind Turbine Anomaly Detection**
 :sync: tab1
+
+::::
+:::
+hide_directive-->
 
 To install Helm charts, use one of the following options:
 
@@ -133,9 +143,15 @@ To install Helm charts, use one of the following options:
 > ```
 > The `privileged_access_required=true` setting enables Time Series Analytics Microservice access to GPU device through `/dev/dri`.
 
+<!--hide_directive
 :::
 :::{tab-item} **Weld Anomaly Detection**
 :sync: tab2
+
+::::
+:::
+hide_directive-->
+
 
 To install Helm charts, run the following command:
 
@@ -148,9 +164,15 @@ helm install ts-weld-anomaly . -n ts-sample-app --create-namespace
 
 ## Step 4: Copy the udf package for helm deployment to Time Series Analytics Microservice
 
+<!--hide_directive
+
 ::::{tab-set}
 :::{tab-item} **Wind Turbine Anomaly Detection**
 :sync: tab1
+
+::::
+:::
+hide_directive-->
 
 To copy your own or existing model into Time Series Analytics Microservice in order to run this sample application in Kubernetes environment:
 
@@ -179,9 +201,15 @@ To copy your own or existing model into Time Series Analytics Microservice in or
     kubectl cp $SAMPLE_APP $POD_NAME:/tmp/ -n ts-sample-app
     ```
 
+<!--hide_directive
+
 :::
 :::{tab-item} **Weld Anomaly Detection**
 :sync: tab2
+
+::::
+:::
+hide_directive-->
 
 To copy your own or existing model into Time Series Analytics Microservice in order to run this sample application in Kubernetes environment:
 
@@ -244,18 +272,28 @@ Follow the verification steps in the [Get Started guide](../get-started.md#verif
 
 ## Uninstall Helm Charts
 
+<!--hide_directive
 ::::{tab-set}
 :::{tab-item} **Wind Turbine Anomaly Detection**
 :sync: tab1
+
+::::
+:::
+hide_directive-->
 
 ```sh
 helm uninstall ts-wind-turbine-anomaly -n ts-sample-app
 kubectl get all -n ts-sample-app # It may take a few minutes for all application resources to be cleaned up.
 ```
 
+<!--hide_directive
 :::
 :::{tab-item} **Weld Anomaly Detection**
 :sync: tab2
+
+::::
+:::
+hide_directive-->
 
 ```sh
 helm uninstall ts-weld-anomaly -n ts-sample-app
