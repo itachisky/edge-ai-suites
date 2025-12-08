@@ -55,8 +55,11 @@ https://github.com/open-edge-platform/edge-ai-suites/blob/main/manufacturing-ai-
    }
  ```
 
-<!--:::
-::::-->
+<!--hide_directive
+:::
+::::
+hide_directive-->
+
 
 #### Configure MQTT Alert in TICK Script
 
@@ -111,8 +114,10 @@ data0
             .qos(1)
 ```
 
-<!--:::
-::::-->
+<!--hide_directive
+:::
+::::
+hide_directive-->
 
 > **Note**: Setting **QoS** to `1` ensures messages are delivered at least once.
 > Alerts are preserved and resent if the MQTT broker reconnects after downtime.
@@ -158,8 +163,10 @@ docker exec -ti ia-mqtt-broker mosquitto_sub -h localhost -v -t '#' -p 1883
   docker exec -ti ia-mqtt-broker mosquitto_sub -h localhost -v -t alerts/weld_defects -p 1883
   ```
 
-  :::
-  ::::
+<!--hide_directive
+:::
+::::
+hide_directive-->
 
 ### Docker - Publish OPC-UA Alerts
 
@@ -227,8 +234,10 @@ data0
             .qos(1)
 ```
 
+<!--hide_directive
 :::
 ::::
+hide_directive-->
 
 > **Note**:
 >
@@ -306,8 +315,10 @@ curl -k -X 'POST' \
 }'
 ```
 
+<!--hide_directive
 :::
 ::::
+hide_directive-->
 
 ### Docker - Subscribe to OPC UA Alerts using Sample OPCUA Subscriber
 
@@ -391,8 +402,10 @@ To subscribe to MQTT topics in a Helm deployment, execute the following command:
   kubectl exec -it -n ts-sample-app <mqtt_broker_pod_name> -- mosquitto_sub -h localhost -v -t alerts/weld_defects -p 1883
   ```
 
-  :::
-  ::::
+<!--hide_directive
+:::
+::::
+hide_directive-->
 
 ### Helm - Publish OPC-UA Alerts
 
@@ -453,8 +466,10 @@ To enable OPC-UA alerts in `Time Series Analytics Microservice`, please follow b
    kubectl cp $SAMPLE_APP $POD_NAME:/tmp/ -n ts-sample-app
    ```
 
-   :::
-   ::::
+  <!--hide_directive
+  :::
+  ::::
+  hide_directive-->
 
 3. Configuring OPC-UA Alert in config.json
 
@@ -525,8 +540,11 @@ To enable OPC-UA alerts in `Time Series Analytics Microservice`, please follow b
    }'
    ```
 
-   :::
-   ::::
+   <!--hide_directive
+  :::
+  ::::
+  hide_directive-->
+   
 
 ### Helm - Subscribe to OPC UA Alerts using Sample OPCUA Subscriber
 

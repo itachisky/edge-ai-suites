@@ -87,8 +87,10 @@ hide_directive-->
 
 3. Proceed to Step 2 to configure your `values.yaml` file present in the current directory.
 
+<!--hide_directive
 :::
 ::::
+hide_directive-->
 
 ## Step 2: Configure and update the environment variables
 
@@ -159,8 +161,10 @@ To install Helm charts, run the following command:
 helm install ts-weld-anomaly . -n ts-sample-app --create-namespace
 ```
 
+<!--hide_directive
 :::
 ::::
+hide_directive-->
 
 ## Step 4: Copy the udf package for helm deployment to Time Series Analytics Microservice
 
@@ -239,8 +243,10 @@ To copy your own or existing model into Time Series Analytics Microservice in or
     kubectl cp $SAMPLE_APP $POD_NAME:/tmp/ -n ts-sample-app
     ```
 
+<!--hide_directive
 :::
 ::::
+hide_directive-->
 
 > **Note:**
 > Run the commands only after performing the Helm install.
@@ -300,8 +306,10 @@ helm uninstall ts-weld-anomaly -n ts-sample-app
 kubectl get all -n ts-sample-app # It may take a few minutes for all application resources to be cleaned up.
 ```
 
+<!--hide_directive
 :::
 ::::
+hide_directive-->
 
 ## Configure Alerts in Time Series Analytics Microservice
 
