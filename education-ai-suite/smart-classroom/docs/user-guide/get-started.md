@@ -39,7 +39,7 @@ pip install --upgrade -r requirements.txt
 ```
 
 
-**d. [Optional] Create Python Venv for Ipex Based Summarizer**  
+**d. [Optional] Create Python Venv for Ipex Based Summarizer**
 If you plan to use IPEX, create a separate virtual environment.
 
 
@@ -58,18 +58,12 @@ pip install --pre --upgrade ipex-llm[xpu_2.6] --extra-index-url https://download
 **e. Install DL Streamer**
 Download the archive from [DL Streamer assets on GitHub](https://github.com/open-edge-platform/edge-ai-libraries/releases) Extract to a new folder, for example `C:\\dlstreamer_dlls`.
 
-Step 2: Run setup script
-Open a PowerShell prompt as and administrator, run the following script and follow instructions:
-```
-cd C:\\dlstreamer_dlls
-.\setup_dls_env.ps1
-```
 For details, refer to [Install Guide](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dl-streamer/get_started/install/install_guide_windows.html).
 
 ## Step 2: Configuration
 
-### a. Default Configuration  
-  
+### a. Default Configuration
+
 By default, the project uses Whisper for transcription and OpenVINO-based Qwen models for summarization.You can modify these settings in the configuration file (`smart-classroom/config.yaml`):
 
 ```bash
@@ -86,7 +80,7 @@ summarizer:
   weight_format: int8         # Supported: fp16, fp32, int4, int8
   max_new_tokens: 1024        # Maximum tokens to generate in summaries
 ```
-### b. Chinese Audio Transcription  
+### b. Chinese Audio Transcription
 
 For Chinese audio transcription, switch to funASR with Paraformer in your config (`smart-classroom/config.yaml`):
 ```bash
@@ -103,6 +97,9 @@ To use IPEX for summarization, ensure:
 - The configuration (`smart-classroom/config.yaml`) is updated as shown below:
 
 ```bash
+asr:
+  provider: funasr
+  name: paraformer-zh
 summarizer:
   provider: ipex
 ```
@@ -110,6 +107,13 @@ summarizer:
 **Important: After updating the configuration, reload the application for changes to take effect.**
 
 ## Step 3: Run the Application
+
+Run setup script
+Open a PowerShell prompt as and administrator, run the following script and follow instructions:
+```
+cd C:\\dlstreamer_dlls
+.\setup_dls_env.ps1
+```
 
 Activate the environment before running the application:
 
@@ -128,7 +132,7 @@ npm install
 npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
->  Open a second (new) Command Prompt / terminal window for the frontend. The backend terminal stays busy serving requests.
+> Open a second (new) Command Prompt / terminal window for the frontend. The backend terminal stays busy serving requests.
 
 💡 Tips: You should see backend logs similar to this:
 
@@ -176,8 +180,18 @@ If you changed the port, adjust the URL accordingly.
   ``` bash
   Either openvino_tokenizer.xml was not provided or it was not loaded correctly. Tokenizer::encode is not available
   ```
-  
+
   Delete the models folder from `edge-ai-suites/education-ai-suite/smart-classroom/models` and try again.
+- If you see below error while running dls setup script,
+  ``` bash
+ .\setup_dls_env.ps1
+    CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    FullyQualifiedErrorId : UnauthorizedAccess
+  ```
+ Run below command,
+ ``` bash
+ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+ ```
 
 ### Known Issues
  
