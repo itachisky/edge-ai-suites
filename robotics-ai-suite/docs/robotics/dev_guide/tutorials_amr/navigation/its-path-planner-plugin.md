@@ -63,7 +63,7 @@ Install dependencies required to run simulations:
 <!--hide_directive:sync: jazzyhide_directive-->
 
 ```bash
-sudo apt install ros-jazzy-turtlesim ros-jazzy-turtlebot3-simulations ros-jazzy-turtlebot3-gazebo ros-jazzy-turtlebot3
+sudo apt install ros-jazzy-turtlebot3-gazebo
 ```
 
 <!--hide_directive:::
@@ -71,7 +71,7 @@ sudo apt install ros-jazzy-turtlesim ros-jazzy-turtlebot3-simulations ros-jazzy-
 <!--hide_directive:sync: humblehide_directive-->
 
 ```bash
-sudo apt install ros-humble-turtlesim ros-humble-turtlebot3-simulations ros-humble-turtlebot3-gazebo ros-humble-turtlebot3
+sudo apt install ros-humble-turtlebot3-gazebo
 ```
 
 <!--hide_directive:::
