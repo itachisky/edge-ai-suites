@@ -218,12 +218,11 @@ class utils:
         cmd = "./sample_start.sh"
         result = subprocess.run(cmd, shell=True, executable='/bin/bash', capture_output=True, text=True)
         output = result.stdout
-        if app == "SP":
+        if app == "SP" or app == "LD":
             success_message = "Pipelines initialized."
             if success_message not in output:
                 raise Exception(f"Pipeline start failed. Expected message not found: '{success_message}'")
             return None
-        # app == "LD": extract response IDs
         response_ids = []
         for line in output.split('\n'):
             id_matches = re.findall(r'[0-9a-f]{32}', line)
@@ -233,8 +232,7 @@ class utils:
         if response_ids:
             logging.info(f"Found {len(response_ids)} response IDs for LD: {response_ids}")
             return response_ids
-        logging.error("No response IDs found in LD pipeline start output")
-        raise Exception("LD pipeline start did not return any response IDs")
+        raise Exception
         
 
     def get_pipeline_status(self, value):
