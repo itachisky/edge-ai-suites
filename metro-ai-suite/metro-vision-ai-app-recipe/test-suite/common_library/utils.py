@@ -63,19 +63,6 @@ class utils:
         
     #     return chrome_options
 
-    def _execute_command(self, command, description="command", raise_on_error=True):
-        """Execute shell command with proper error handling"""
-        try:
-            logging.info(f"Executing {description}: {command}")
-            result = subprocess.check_output(command, shell=True, executable='/bin/bash')
-            return result.decode('utf-8')
-        except subprocess.CalledProcessError as e:
-            error_msg = f"Failed to execute {description}: {e}"
-            logging.error(error_msg)
-            if raise_on_error:
-                raise Exception(error_msg)
-            return None
-
 
     def json_reader(self, tc, JSON_PATH):
         """Read a JSON configuration file and return the entry matching the test case key.
@@ -137,7 +124,7 @@ class utils:
         """Execute docker compose up and verify container status"""
         try:
             logging.info("Starting Docker containers with docker compose up...")
-            self._execute_command("docker compose up -d", description='docker compose up')
+            subprocess.call("docker compose up -d", shell=True, executable='/bin/bash')
             time.sleep(5)
             return self._verify_container_status(value)
         except Exception as e:
@@ -483,8 +470,8 @@ class utils:
         except Exception as e:
             logging.error(f"Error verifying pipeline stop: {e}")
             return False
-    
-        
+
+
     def docker_compose_down(self):
         """Bring down docker-compose services for the metro project and report remaining containers.
 
@@ -494,12 +481,11 @@ class utils:
         logging.info('Stopping services with docker compose down')
         os.chdir(self.metro_path)
         try:
-            self._execute_command("docker compose down -v", description='docker compose down')
-            logging.info("Docker compose down executed successfully")
+            subprocess.call("docker compose down -v", shell=True, executable='/bin/bash')
             time.sleep(3)
             logging.info('Verifying no services are running')
 
-            docker_ps_output = self._execute_command("docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'", description='docker ps')
+            docker_ps_output = subprocess.call("docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'", shell=True, executable='/bin/bash')
             if docker_ps_output is None:
                 docker_ps_output = ""
             logging.info(f"Current running containers: {docker_ps_output}")
@@ -525,5 +511,5 @@ class utils:
             else:
                 logging.info("No project-related containers are running")
             logging.info("Services stopped successfully") 
-        except subprocess.CalledProcessError as e:
-            raise Exception
+        except Exception as e:
+            logging.error(f"Error in docker_compose_down: {e}")
