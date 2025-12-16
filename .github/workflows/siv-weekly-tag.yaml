@@ -30,4 +30,5 @@ jobs:
         TAG_NAME="${{ vars.SIV_WEEKLY_BUILD_PREFIX }}-$(date +'%Y%m%d')"
         git tag "$TAG_NAME"
         git push origin "$TAG_NAME"
-        
+      env:
+        GH_TOKEN: ${{ secrets.SIV_USER_TOKEN_GH }}
