@@ -642,7 +642,7 @@ class utils:
             return False
     
         
-    def docker_compose_down(self):
+    def docker_compose_down(self, value):
         """
         Bring down docker-compose services for the metro project and report remaining containers.
 
@@ -658,37 +658,39 @@ class utils:
             self._execute_command("docker compose down -v", description='docker compose down')
             logging.info("Docker compose down executed successfully")
             time.sleep(3)
-            logging.info('Verifying no services are running')
-
-            docker_ps_output = self._execute_command("docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'", description='docker ps')
-            if docker_ps_output is None:
-                docker_ps_output = ""
-            logging.info(f"Current running containers: {docker_ps_output}")
-            lines = docker_ps_output.strip().split('\n')[1:]
-            running_containers = []
-            project_containers = ['dlstreamer-pipeline-server', 'broker', 'coturn', 'grafana', 'node-red', 'mediamtx-server', 'nginx-reverse-proxy']    
-            for line in lines:
-                if line.strip():
-                    container_name = line.split('\t')[0].strip()
-                    project_found = False
-                    for project_name in project_containers:
-                        if project_name in container_name.lower():
-                            project_found = True
-                            break
-                    if project_found:
-                        running_containers.append(container_name)
-                
-            if running_containers:
-                logging.warning(f"Found {len(running_containers)} project-related containers still running:")
-                for container in running_containers:
-                    logging.warning(f"  - {container}")
-                logging.warning("These containers may need manual cleanup")
+            if value.get("app") == "SI":
+                return
             else:
-                logging.info("No project-related containers are running")
-            logging.info("Services stopped successfully") 
+                logging.info('Verifying no services are running')
+                docker_ps_output = self._execute_command("docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'", description='docker ps')
+                if docker_ps_output is None:
+                    docker_ps_output = ""
+                logging.info(f"Current running containers: {docker_ps_output}")
+                lines = docker_ps_output.strip().split('\n')[1:]
+                running_containers = []
+                project_containers = ['dlstreamer-pipeline-server', 'broker', 'coturn', 'grafana', 'node-red', 'mediamtx-server', 'nginx-reverse-proxy']    
+                for line in lines:
+                    if line.strip():
+                        container_name = line.split('\t')[0].strip()
+                        project_found = False
+                        for project_name in project_containers:
+                            if project_name in container_name.lower():
+                                project_found = True
+                                break
+                        if project_found:
+                            running_containers.append(container_name)
+                    
+                if running_containers:
+                    logging.warning(f"Found {len(running_containers)} project-related containers still running:")
+                    for container in running_containers:
+                        logging.warning(f"  - {container}")
+                    logging.warning("These containers may need manual cleanup")
+                else:
+                    logging.info("No project-related containers are running")
+                logging.info("Services stopped successfully") 
         except subprocess.CalledProcessError as e:
             raise Exception
-        
+            
     def update_values_helm(self, value):
         """
         Update helm chart values.yaml files with HOST_IP, proxy settings, and webrtc configuration.
