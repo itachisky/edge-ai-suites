@@ -10,14 +10,15 @@ SCRIPT_DIR=$(dirname $(readlink -f "$0"))
 PIPELINE_ROOT="user_defined_pipelines" # Default root directory for pipelines
 PIPELINE="all"                         # Default to running all pipelines
 DEPLOYMENT_TYPE=""                     # Default deployment type (empty for existing flow)
+ENV_FILE="${ENV_FILE:-.env}"           # Default to .env if not set
 
 init() {
-    # load environment variables from .env file if it exists
-    if [[ -f "$SCRIPT_DIR/.env" ]]; then
-        export $(grep -v -E '^\s*#' "$SCRIPT_DIR/.env" | sed -e 's/#.*$//' -e '/^\s*$/d' | xargs)
-        echo "Environment variables loaded from $SCRIPT_DIR/.env"
+    # load environment variables from specified env file if it exists
+    if [[ -f "$SCRIPT_DIR/$ENV_FILE" ]]; then
+        export $(grep -v -E '^\s*#' "$SCRIPT_DIR/$ENV_FILE" | sed -e 's/#.*$//' -e '/^\s*$/d' | xargs)
+        echo "Environment variables loaded from $SCRIPT_DIR/$ENV_FILE"
     else
-        err "No .env file found in $SCRIPT_DIR"
+        err "No $ENV_FILE file found in $SCRIPT_DIR"
         exit 1
     fi
 
@@ -28,6 +29,12 @@ init() {
     else
         echo "Running sample app: $SAMPLE_APP"
     fi
+    # check if APP_DIR is set
+    if [[ -z "$APP_DIR" ]]; then
+        err "APP_DIR environment variable is not set in $ENV_FILE."
+        echo "Please run: ENV_FILE=$ENV_FILE ./setup.sh"
+        exit 1
+    fi
     # check if APP_DIR directory exists
     if [[ ! -d "$APP_DIR" ]]; then
         err "APP_DIR directory $APP_DIR does not exist."
@@ -36,10 +43,11 @@ init() {
 
     # Set the appropriate HOST_IP with port for curl commands based on deployment type
     if [[ "$DEPLOYMENT_TYPE" == "helm" ]]; then
-        CURL_HOST_IP="${HOST_IP}:30443"
+        # For Helm, use NGINX_HTTPS_PORT if set (for multi-instance), otherwise default to 30443
+        CURL_HOST_IP="${HOST_IP}:${NGINX_HTTPS_PORT:-30443}"
         echo "Using Helm deployment - curl commands will use: $CURL_HOST_IP"
     else
-        CURL_HOST_IP="$HOST_IP"
+        CURL_HOST_IP="${HOST_IP}:${NGINX_HTTPS_PORT:-443}"
         echo "Using default deployment - curl commands will use: $CURL_HOST_IP"
     fi
 }
@@ -122,7 +130,7 @@ err() {
 usage() {
     echo "Usage: $0 [helm] [--all] [ -i | --id <instance_id> ] [-h | --help]"
     echo "Arguments:"
-    echo "  helm                            Use Helm deployment (adds :30443 port to HOST_IP for curl commands)"
+    echo "  helm                            Use Helm deployment (uses NGINX_HTTPS_PORT env var or defaults to :30443)"
     echo "Options:"
     echo "  --all                           Stop all running pipelines instances (default)"
     echo "  -i, --id <instance_id>          Stop a pipeline instance"

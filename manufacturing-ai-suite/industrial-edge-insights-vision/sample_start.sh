@@ -16,14 +16,15 @@ PIPELINE_ROOT="user_defined_pipelines" # Default root directory for pipelines
 PIPELINE="all"                         # Default to running all pipelines
 PAYLOAD_COPIES=1                       # Default to running a single copy of the payloads
 DEPLOYMENT_TYPE=""                     # Default deployment type (empty for existing flow)
+ENV_FILE="${ENV_FILE:-.env}"           # Default to .env if not set
 
 init() {
-    # load environment variables from .env file if it exists
-    if [[ -f "$SCRIPT_DIR/.env" ]]; then
-        export $(grep -v -E '^\s*#' "$SCRIPT_DIR/.env" | sed -e 's/#.*$//' -e '/^\s*$/d' | xargs)
-        echo "Environment variables loaded from $SCRIPT_DIR/.env"
+    # load environment variables from specified env file if it exists
+    if [[ -f "$SCRIPT_DIR/$ENV_FILE" ]]; then
+        export $(grep -v -E '^\s*#' "$SCRIPT_DIR/$ENV_FILE" | sed -e 's/#.*$//' -e '/^\s*$/d' | xargs)
+        echo "Environment variables loaded from $SCRIPT_DIR/$ENV_FILE"
     else
-        err "No .env file found in $SCRIPT_DIR"
+        err "No $ENV_FILE file found in $SCRIPT_DIR"
         exit 1
     fi
 
@@ -34,6 +35,12 @@ init() {
     else
         echo "Running sample app: $SAMPLE_APP"
     fi
+    # check if APP_DIR is set
+    if [[ -z "$APP_DIR" ]]; then
+        err "APP_DIR environment variable is not set in $ENV_FILE."
+        echo "Please run: ENV_FILE=$ENV_FILE ./setup.sh"
+        exit 1
+    fi
     # check if APP_DIR directory exists
     if [[ ! -d "$APP_DIR" ]]; then
         err "APP_DIR directory $APP_DIR does not exist."
@@ -42,10 +49,11 @@ init() {
 
     # Set the appropriate HOST_IP with port for curl commands based on deployment type
     if [[ "$DEPLOYMENT_TYPE" == "helm" ]]; then
-        CURL_HOST_IP="${HOST_IP}:30443"
+        # For Helm, use NGINX_HTTPS_PORT if set (for multi-instance), otherwise default to 30443
+        CURL_HOST_IP="${HOST_IP}:${NGINX_HTTPS_PORT:-30443}"
         echo "Using Helm deployment - curl commands will use: $CURL_HOST_IP"
     else
-        CURL_HOST_IP="$HOST_IP"
+        CURL_HOST_IP="${HOST_IP}:${NGINX_HTTPS_PORT:-443}"
         echo "Using default deployment - curl commands will use: $CURL_HOST_IP"
     fi
 }
@@ -184,13 +192,17 @@ err() {
 usage() {
     echo "Usage: $0 [helm] [--all] [-p | --pipeline <pipeline_name>] [ -n | --payload-copies ] [-h | --help]"
     echo "Arguments:"
-    echo "  helm                            For Helm deployment (adds :30443 port to HOST_IP for curl commands)"
+    echo "  helm                            For Helm deployment (uses NGINX_HTTPS_PORT env var or defaults to :30443)"
     echo "Options:"
     echo "  --all                           Run all pipelines in the config (Default)"
     echo "  -p, --pipeline <pipeline_name>  Specify the pipeline to run"
     echo "  -n, --payload-copies            Run copies of the payloads for pipeline(s)."
     echo "                                  Any frame rtsp path or webrtc peer-id in payload will be incremented."
     echo "  -h, --help                      Show this help message"
+    echo ""
+    echo "For multi-instance deployments, set ENV_FILE before running:"
+    echo "  ENV_FILE=.env.pdd ./sample_start.sh -p pallet_defect_detection"
+    echo "  ENV_FILE=.env.pcb ./sample_start.sh -p pcb_anomaly_detection"
 }
 
 main() {
