@@ -100,6 +100,12 @@
          "fps"
       ]
    },
+   "LDHELM002": {
+      "app": "LD",
+      "device": "CPU",
+      "deploy": true,
+      "webrtc_url": true
+   },
    "SPHELM001": {
       "app": "SP",
       "device": "CPU",
@@ -107,6 +113,12 @@
          "number-streams=4",
          "fps"
       ]
+   },
+   "SPHELM002": {
+      "app": "SP",
+      "device": "CPU",
+      "deploy": true,
+      "webrtc_url": true
    },
    "SIHELM001": {
       "app": "SI",
@@ -116,5 +128,11 @@
          "timestamp_for_next_block",
          "postdecode_timestamp"
       ]
+   },
+   "SIHELM002": {
+      "app": "SI",
+      "device": "CPU",
+      "deploy": true,
+      "webrtc_url": true
    }
 }

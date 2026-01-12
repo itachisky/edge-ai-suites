@@ -51,5 +51,5 @@ class TestCaseManager(BaseTest):
     @classmethod
     def tearDownClass(cls):
         os.chdir(cls.utils.metro_path)
-        subprocess.check_output("git checkout -- .", shell=True, executable='/bin/bash')
+        # subprocess.check_output("git checkout -- .", shell=True, executable='/bin/bash')
         time.sleep(5)

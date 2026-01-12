@@ -107,8 +107,18 @@ class test_suite(unittest.TestCase):
         ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/apps_helm.py:TestCaseManager.test_metro_apps", shell=True, env=env)
         return ret
     
+    def TC_002_SPHELM(self):
+        env["TEST_CASE"] = "SPHELM002"
+        ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/apps_helm.py:TestCaseManager.test_metro_apps", shell=True, env=env)
+        return ret
+    
     def TC_001_LDHELM(self):
         env["TEST_CASE"] = "LDHELM001"
+        ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/apps_helm.py:TestCaseManager.test_metro_apps", shell=True, env=env)
+        return ret
+    
+    def TC_002_LDHELM(self):
+        env["TEST_CASE"] = "LDHELM002"
         ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/apps_helm.py:TestCaseManager.test_metro_apps", shell=True, env=env)
         return ret
     
@@ -117,6 +127,10 @@ class test_suite(unittest.TestCase):
         ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/apps_helm.py:TestCaseManager.test_metro_apps", shell=True, env=env)
         return ret
     
+    def TC_002_SIHELM(self):
+        env["TEST_CASE"] = "SIHELM002"
+        ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/apps_helm.py:TestCaseManager.test_metro_apps", shell=True, env=env)
+        return ret
 
 if __name__ == '__main__':
     unittest.main()

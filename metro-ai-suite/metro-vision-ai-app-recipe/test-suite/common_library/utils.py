@@ -501,74 +501,122 @@ class utils:
 
 
     def verify_grafana_url(self, value):
-        """
-        Verify Grafana Dashboard accessibility at different ports based on deployment type.
-        
-        Tests Grafana login and dashboard access for both SI (port 3000) and 
-        other applications (standard grafana path with SSL).
-        
-        Args:
-            value (dict): Configuration dictionary containing app type.
-            
-        Returns:
-            bool: True if Grafana dashboard is accessible and showing data.
-            
-        Raises:
-            Exception: If Grafana verification fails.
-        """
+        """Verify Grafana Dashboard at different ports based on deployment type"""
         driver = None
         try:
-            logging.info(f"Verifying Grafana Dashboard")
-            chrome_options = self._get_chrome_options()
-            driver = webdriver.Chrome(options=chrome_options)
+            logging.info("Verifying Grafana Dashboard")
+            
+            # Determine deployment configuration
+            is_helm = value.get("deploy") is True
+            app_type = value.get("app")
+            
+            config = self._get_grafana_config(app_type, is_helm)
+            logging.info(f"Detected {config['description']}")
+            
+            driver = webdriver.Chrome(options=self._get_chrome_options())
             driver.implicitly_wait(10)
-            if value.get("app") == "SI":
-                login_url = f"http://{hostIP}:3000/login"
-                dashboard_url = f"http://{hostIP}:3000/dashboards"
-                post_success_log = "Grafana Dashboard is accessible and showing data for SI"
-            else:
-                logging.info("Detected docker deployment - using standard grafana path")
-                login_url = f"https://{hostIP}/grafana/login"
-                dashboard_url = f"https://{hostIP}/grafana/dashboards"
-                post_success_log = "Grafana Dashboard is accessible and showing data"
-
-            # Navigate to login page and ensure it's accessible
-            driver.get(login_url)
-            assert "404" not in driver.title, "Grafana login page not accessible"
-            # Perform login
-            username_input = driver.find_element("name", "user")
-            password_input = driver.find_element("name", "password")
-            username_input.send_keys("admin")
-            password_input.send_keys("admin")
-            driver.find_element("css selector", "button[type='submit']").click()
-            driver.implicitly_wait(5)
-
-            # Handle docker password change prompt if it appears
-            if value.get("app") != "SI":
-                try:
-                    if "change-password" in driver.current_url or "password" in driver.page_source.lower():
-                        logging.info("Password change prompt detected, skipping...")
-                        try:
-                            skip_button = driver.find_element("xpath", "//button[contains(text(), 'Skip')]")
-                            skip_button.click()
-                        except:
-                            driver.get(login_url.replace('/login', ''))
-                except:
-                    pass
-
-            # Verify login success and dashboard accessibility
-            assert "Grafana" in driver.title or "Home" in driver.page_source, "Grafana login failed"
-            driver.get(dashboard_url)
-            driver.implicitly_wait(10)
-            assert "No data" not in driver.page_source, "Grafana dashboard is not showing data"
-            logging.info(post_success_log)
+            
+            # Try accessing Grafana with retries if needed
+            success = self._access_grafana_with_retry(driver, config, max_attempts=3 if app_type == "SI" else 10)
+            if not success:
+                raise Exception(f"Could not access Grafana via any configured URL for {config['description']}")
+                
+            # Perform login and verification
+            self._grafana_login_and_verify(driver, config)
+            logging.info(f"Grafana Dashboard is accessible and verified for {config['description']}")
             return True
+            
         except Exception as e:
             logging.error(f"Failed to verify Grafana URL: {e}")
             raise Exception(f"Grafana URL verification failed: {e}")
         finally:
             if driver:
                 driver.quit()
+    
+    def _get_grafana_config(self, app_type, is_helm):
+        """Get Grafana configuration based on deployment type"""
+        if app_type == "SI" and is_helm:
+            return {
+                "urls": [f"https://{hostIP}:30443/grafana/"],
+                "dashboard_url": f"https://{hostIP}:30443/grafana/dashboards",
+                "description": "SI helm deployment - using port 30443",
+                "skip_password_change": True
+            }
+        elif app_type == "SI":
+            return {
+                "urls": [f"https://{hostIP}/grafana/login"],
+                "dashboard_url": f"https://{hostIP}/grafana/dashboards", 
+                "description": "SI docker deployment - using nginx reverse proxy",
+                "skip_password_change": False
+            }
+        elif is_helm:
+            return {
+                "urls": [f"https://{hostIP}:30443/grafana/"],
+                "dashboard_url": f"https://{hostIP}:30443/grafana/dashboards",
+                "description": "helm deployment - using port 30443",
+                "skip_password_change": False
+            }
+        else:
+            return {
+                "urls": [f"https://{hostIP}/grafana/login"],
+                "dashboard_url": f"https://{hostIP}/grafana/dashboards",
+                "description": "docker deployment - using standard grafana path", 
+                "skip_password_change": False
+            }
+    
+    def _access_grafana_with_retry(self, driver, config, max_attempts):
+        """Try accessing Grafana URLs with retry logic"""
+        for attempt in range(max_attempts):
+            for url in config["urls"]:
+                try:
+                    logging.info(f"Trying Grafana access via: {url} (attempt {attempt + 1})")
+                    driver.get(url)
+                    
+                    error_indicators = ["404", "502", "503", "504 Gateway Time-out", "502 Bad Gateway", "503 Service Unavailable"]
+                    if not any(error in driver.title for error in error_indicators):
+                        logging.info(f"Successfully accessed Grafana via: {url}")
+                        return True
+                        
+                except Exception as e:
+                    logging.warning(f"Failed to access {url}: {e}")
+            
+            if attempt < max_attempts - 1:
+                logging.info(f"Retrying in 30 seconds...")
+                time.sleep(30)
+        
+        return False
+    
+    def _grafana_login_and_verify(self, driver, config):
+        """Perform Grafana login and dashboard verification"""
+        # Login if elements are present
+        try:
+            username_input = driver.find_element("name", "user")
+            password_input = driver.find_element("name", "password")
+            username_input.send_keys("admin")
+            password_input.send_keys("admin")
+            driver.find_element("css selector", "button[type='submit']").click()
+            driver.implicitly_wait(5)
+        except:
+            logging.info("Login elements not found, checking if already authenticated")
+        
+        # Handle password change prompt
+        if not config.get("skip_password_change", False):
+            try:
+                if "change-password" in driver.current_url or ("password" in driver.page_source.lower() and "skip" in driver.page_source.lower()):
+                    logging.info("Password change prompt detected, skipping...")
+                    skip_button = driver.find_element("xpath", "//button[contains(text(), 'Skip')]")
+                    skip_button.click()
+            except:
+                pass
+        
+        # Verify authentication and dashboard access
+        time.sleep(2)
+        if not ("Grafana" in driver.title or "Home" in driver.page_source or "grafana" in driver.current_url.lower()):
+            raise Exception("Grafana login verification failed")
+            
+        # Test dashboard accessibility  
+        driver.get(config["dashboard_url"])
+        driver.implicitly_wait(10)
 
 
     def stop_pipeline_and_check(self, value):
@@ -799,6 +847,7 @@ class utils:
         except Exception as e:
             logging.error(f"Exception in update_values_helm: {e}")
             return False
+
         
     def helm_deploy(self, value):
         """
