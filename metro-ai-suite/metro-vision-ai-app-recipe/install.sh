@@ -59,18 +59,21 @@ fi
 # Extract SAMPLE_APP variable from .env file
 SAMPLE_APP=$(grep -E "^SAMPLE_APP=" "$ENV_FILE" | cut -d '=' -f2 | tr -d '"' | tr -d "'")
 
+# Determine appropriate docker-compose file based on SAMPLE_APP
+if [ "$SAMPLE_APP" = "smart-intersection" ]; then
+    RI_COMPOSE_FILE_ARG="compose-scenescape.yml"
+else
+    RI_COMPOSE_FILE_ARG="compose-without-scenescape.yml"
+fi
+
 # Bring down the application before updating docker compose file
-if docker compose ps >/dev/null 2>&1; then
+if docker compose -f "$RI_COMPOSE_FILE_ARG" ps >/dev/null 2>&1; then
     echo "Bringing down any running containers..."
-    docker compose down
+    docker compose -f "$RI_COMPOSE_FILE_ARG" down
 fi
 
 # Copy appropriate docker-compose file
-if [ "$SAMPLE_APP" = "smart-intersection" ]; then
-    cp compose-scenescape.yml docker-compose.yml
-else
-    cp compose-without-scenescape.yml docker-compose.yml
-fi
+cp "$RI_COMPOSE_FILE_ARG" docker-compose.yml
 
 # Check if the directory exists
 if [ ! -d "$SAMPLE_APP" ]; then
