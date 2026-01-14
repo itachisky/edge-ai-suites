@@ -17,7 +17,7 @@ services:
   broker:
     image: docker.io/library/eclipse-mosquitto:2.0.21
     ports:
-      - "1883:1883"
+      - "1883"
     environment:
       http_proxy: ${http_proxy}
       https_proxy: ${https_proxy}
@@ -57,7 +57,7 @@ services:
       HTTPS_PROXY: ${https_proxy}
       NO_PROXY: ${no_proxy},.scenescape.intel.com,influxdb2
     ports:
-      - "1880:1880"
+      - "1880"
     networks:
       - scenescape
     volumes:
@@ -91,7 +91,7 @@ services:
   influxdb2:
     image: docker.io/library/influxdb:2.7.11
     ports:
-      - "8086:8086"
+      - "8086"
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME_FILE: /run/secrets/influxdb2-admin-username
@@ -137,7 +137,7 @@ services:
       HTTPS_PROXY: ${https_proxy}
       NO_PROXY: ${no_proxy},.scenescape.intel.com,influxdb2
     ports:
-      - "3000:3000"
+      - "3000"
     restart: on-failure:5
     networks:
       - scenescape
@@ -167,8 +167,8 @@ services:
     privileged: true
     entrypoint: ["./run.sh"]
     ports:
-      - "8080:8080"
-      - "8555:8555"
+      - "8080"
+      - "8555"
     devices:
       - "/dev/dri:/dev/dri"
     depends_on:
@@ -257,7 +257,7 @@ services:
     depends_on:
       - pgserver
     ports:
-      - "443:443"
+      - "443"
     environment:
       - "DBROOT=/workspace"
       - http_proxy=${http_proxy}
