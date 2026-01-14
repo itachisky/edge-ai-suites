@@ -51,7 +51,7 @@ elif [ "$1" = "--stop" ]; then
     echo -e "${YELLOW}Stopping Scene Intelligence services... ${NC}"
     
     # Stop Docker services
-    docker compose -f docker/compose.yaml down
+    docker compose -p ${INTERSECTION_NAME} -f docker/compose.yaml down
     if [ $? -ne 0 ]; then
         return 1
     fi
@@ -63,7 +63,7 @@ elif [ "$1" = "--stop" ]; then
         cd "$EDGE_AI_SUITES_DIR/metro-ai-suite/metro-vision-ai-app-recipe"
         if [ -f "docker-compose.yml" ] || [ -f "compose.yaml" ]; then
             echo -e "${YELLOW}Stopping edge-ai-suites services... ${NC}"
-            docker compose down 2>/dev/null
+            docker compose -p ${INTERSECTION_NAME} down 2>/dev/null
             if [ $? -eq 0 ]; then
                 echo -e "${GREEN}edge-ai-suites services stopped successfully. ${NC}"
             else
@@ -81,7 +81,7 @@ elif [ "$1" = "--clean" ]; then
     # If --clean is passed, clean up containers and volumes
     echo -e "${YELLOW}Cleaning up containers and volumes... ${NC}"
     
-    docker compose -f docker/compose.yaml down 2>/dev/null || true
+    docker compose -p ${INTERSECTION_NAME} -f docker/compose.yaml down 2>/dev/null || true
     
     echo -e "${YELLOW}Removing scene intelligence volumes... ${NC}"
     docker volume ls | grep scene-intelligence | awk '{ print $2 }' | xargs docker volume rm 2>/dev/null || true
@@ -101,7 +101,7 @@ elif [ "$1" = "--clean" ]; then
             cd "$EDGE_AI_SUITES_DIR/metro-ai-suite/metro-vision-ai-app-recipe"
             if [ -f "docker-compose.yml" ] || [ -f "compose.yaml" ]; then
                 echo -e "${YELLOW}Stopping edge-ai-suites docker services... ${NC}"
-                docker compose down 2>/dev/null || true
+                docker compose -p ${INTERSECTION_NAME} down 2>/dev/null || true
                 
                 echo -e "${YELLOW}Removing metro-vision-ai-app-recipe volumes... ${NC}"
                 docker volume ls | grep metro-vision-ai-app-recipe | awk '{ print $2 }' | xargs docker volume rm 2>/dev/null || true
@@ -128,6 +128,9 @@ export HOST_IP=$(ip route get 1 2>/dev/null | awk '{print $7}')
 if [ -z "$HOST_IP" ]; then
     export HOST_IP="127.0.0.1"
 fi
+
+# Intersection name for project/network naming (allows multiple instances)
+export INTERSECTION_NAME=${INTERSECTION_NAME:-Intersection-1}
 # Function to check if prerequisites are met
 check_and_setup_prerequisites() {
     local EDGE_AI_SUITES_DIR="edge-ai-suites"
@@ -195,7 +198,7 @@ check_and_setup_prerequisites() {
     
     # Download container images and run with Docker Compose
     echo -e "${BLUE}==> Downloading container images and starting services...${NC}"
-    docker compose up -d
+    docker compose -p ${INTERSECTION_NAME} -f compose-scenescape.yml -f ../../../docker/ri-overrides/ports.override.yml up -d
     
     if [ $? -ne 0 ]; then
         echo -e "${RED}Failed to start services with docker compose${NC}"
@@ -209,7 +212,7 @@ check_and_setup_prerequisites() {
     echo -e "${BLUE}==> Verifying running status...${NC}"
     sleep 5  # Give services a moment to start
     
-    docker compose ps
+    docker compose -p ${INTERSECTION_NAME} ps
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Services are running. Verification completed.${NC}"
@@ -304,7 +307,7 @@ build_and_start_service() {
     echo -e "${BLUE}==> Building and Starting Scene Intelligence Services...${NC}"
     
     # Build and start the services
-    docker compose -f docker/compose.yaml up -d --build 2>&1 1>/dev/null
+    docker compose -p ${INTERSECTION_NAME} -f docker/compose.yaml up -d --build 2>&1 1>/dev/null
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Scene Intelligence Services built and started successfully!${NC}"
@@ -316,7 +319,7 @@ build_and_start_service() {
         echo -e "  • VLM Service API Docs: ${YELLOW}http://${HOST_IP}:${VLM_SERVICE_PORT}/docs${NC}"
         echo ""
         echo -e "${BLUE}To view logs:${NC}"
-        echo -e "  ${YELLOW}docker compose -f docker/compose.yaml logs -f${NC}"
+        echo -e "  ${YELLOW}docker compose -p ${INTERSECTION_NAME} -f docker/compose.yaml logs -f${NC}"
         echo -e "${BLUE}To stop the services:${NC}"
         echo -e "  ${YELLOW}source setup.sh --stop${NC}"
     else
@@ -330,7 +333,7 @@ start_service() {
     echo -e "${BLUE}==> Starting Scene Intelligence Services...${NC}"
     
     # Start the services
-    docker compose -f docker/compose.yaml up -d
+    docker compose -p ${INTERSECTION_NAME} -f docker/compose.yaml up -d
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Scene Intelligence Services started successfully!${NC}"
@@ -342,7 +345,7 @@ start_service() {
         echo -e "  • VLM Service: ${YELLOW}http://${HOST_IP}:${VLM_SERVICE_PORT}${NC}"
         echo ""
         echo -e "${BLUE}To view logs:${NC}"
-        echo -e "  ${YELLOW}docker compose -f docker/compose.yaml logs -f${NC}"
+        echo -e "  ${YELLOW}docker compose -p ${INTERSECTION_NAME} -f docker/compose.yaml logs -f${NC}"
         echo -e "${BLUE}To stop the services:${NC}"
         echo -e "  ${YELLOW}source setup.sh --stop${NC}"
     else
@@ -360,7 +363,7 @@ restart_service() {
             echo -e "${BLUE}==> Restarting Scene Intelligence Services with updated environment variables...${NC}"
             
             # Stop the Scene Intelligence services
-            docker compose -f docker/compose.yaml down
+            docker compose -p ${INTERSECTION_NAME} -f docker/compose.yaml down
             
             if [ $? -ne 0 ]; then
                 echo -e "${RED}Failed to stop Scene Intelligence services${NC}"
@@ -368,7 +371,7 @@ restart_service() {
             fi
             
             # Start with force-recreate to ensure env vars are picked up
-            docker compose -f docker/compose.yaml up -d --force-recreate
+            docker compose -p ${INTERSECTION_NAME} -f docker/compose.yaml up -d --force-recreate
             
             if [ $? -eq 0 ]; then
                 echo -e "${GREEN}Scene Intelligence Services restarted successfully with updated configuration!${NC}"
@@ -380,7 +383,7 @@ restart_service() {
                 echo -e "  • VLM Service: ${YELLOW}http://${HOST_IP}:${VLM_SERVICE_PORT}${NC}"
                 echo ""
                 echo -e "${BLUE}To view logs:${NC}"
-                echo -e "  ${YELLOW}docker compose -f docker/compose.yaml logs -f${NC}"
+                echo -e "  ${YELLOW}docker compose -p ${INTERSECTION_NAME} -f docker/compose.yaml logs -f${NC}"
             else
                 echo -e "${RED}Failed to restart Scene Intelligence Services${NC}"
                 return 1
@@ -402,7 +405,7 @@ restart_service() {
             
             # Stop the prerequisite services
             echo -e "${BLUE}==> Stopping prerequisite services...${NC}"
-            docker compose down
+            docker compose -p ${INTERSECTION_NAME} down
             
             if [ $? -ne 0 ]; then
                 echo -e "${RED}Failed to stop prerequisite services${NC}"
@@ -412,7 +415,7 @@ restart_service() {
             
             # Start with force-recreate to ensure env vars are picked up
             echo -e "${BLUE}==> Starting prerequisite services with updated configuration...${NC}"
-            docker compose up -d --force-recreate
+            docker compose -p ${INTERSECTION_NAME} up -d --force-recreate
             
             if [ $? -eq 0 ]; then
                 echo -e "${GREEN}Prerequisite Services restarted successfully with updated configuration!${NC}"
@@ -444,8 +447,8 @@ restart_service() {
                 cd "$METRO_DIR"
                 
                 echo -e "${BLUE}==> Restarting prerequisite services...${NC}"
-                docker compose down
-                docker compose up -d --force-recreate
+                docker compose -p ${INTERSECTION_NAME} down
+                docker compose -p ${INTERSECTION_NAME} up -d --force-recreate
                 
                 if [ $? -eq 0 ]; then
                     echo -e "${GREEN}Prerequisite Services restarted successfully!${NC}"
@@ -462,8 +465,8 @@ restart_service() {
             
             # Restart Scene Intelligence services
             echo -e "${BLUE}==> Restarting Scene Intelligence Services...${NC}"
-            docker compose -f docker/compose.yaml down
-            docker compose -f docker/compose.yaml up -d --force-recreate
+            docker compose -p ${INTERSECTION_NAME} -f docker/compose.yaml down
+            docker compose -p ${INTERSECTION_NAME} -f docker/compose.yaml up -d --force-recreate
             
             if [ $? -eq 0 ]; then
                 echo -e "${GREEN}All services restarted successfully with updated configuration!${NC}"

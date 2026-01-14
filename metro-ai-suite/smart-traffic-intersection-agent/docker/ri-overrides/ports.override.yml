@@ -1,0 +1,25 @@
+# ports.override.yml (fixed for ALL host-mapped ports)
+# Uses !override to replace ports instead of merging (requires Docker Compose v2.24.0+)
+services:
+  broker:
+    ports: !override
+      - "0:1883"
+  influxdb2:
+    ports: !override
+      - "0:8086"
+  grafana:
+    ports: !override
+      - "0:3000"
+  dlstreamer-pipeline-server:
+    ports: !override
+      - "0:8080"
+      - "0:8555"
+  node-red:
+    ports: !override
+      - "0:1880"
+  pgserver:
+    ports: !override
+      - "0:5432"
+  web:
+    ports: !override
+      - "0:443"
