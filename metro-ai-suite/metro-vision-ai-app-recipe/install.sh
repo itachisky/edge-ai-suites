@@ -56,8 +56,14 @@ else
     echo "HOST_IP=$HOST_IP" >> "$ENV_FILE"
 fi
 
-# Extract SAMPLE_APP variable from .env file
+# Extract SAMPLE_APP variable from .env file to ensure consistency
 SAMPLE_APP=$(grep -E "^SAMPLE_APP=" "$ENV_FILE" | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+
+# Validate that SAMPLE_APP was set correctly
+if [ -z "$SAMPLE_APP" ]; then
+    echo "Error: SAMPLE_APP not found in .env file."
+    exit 1
+fi
 
 # Determine appropriate docker-compose file based on SAMPLE_APP
 if [ "$SAMPLE_APP" = "smart-intersection" ]; then
