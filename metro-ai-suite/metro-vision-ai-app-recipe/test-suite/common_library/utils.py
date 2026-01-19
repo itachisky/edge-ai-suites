@@ -753,71 +753,59 @@ class utils:
         Returns:
             bool: True if values.yaml was successfully updated, False otherwise.
         """
-        try:
-            if value is None:
-                logging.error("Value parameter is None - cannot update values.yaml")
-                return False
+        os.chdir(self.metro_path) 
+        app_type = value.get("app", "")
+        app_name = self.app_configs[app_type]["name"]
+
+        # Set values_yaml_path based on app type
+        if value.get("app") == "SI":
+            values_yaml_path = os.path.join(self.metro_path, app_name, "chart", "values.yaml")
+        else:
+            values_yaml_path = os.path.join(self.metro_path, app_name, "helm-chart", "values.yaml")
+        if not os.path.exists(values_yaml_path):
+           raise Exception(f"values.yaml not found at: {values_yaml_path}")
             
-            os.chdir(self.metro_path)
-            logging.info(f"Changed directory to: {self.metro_path}")
+        logging.info(f"Updating values.yaml for {app_name}")
             
-            app_type = value.get("app", "")
-            app_name = self.app_configs.get(app_type, {}).get("name", "")
-            if not app_name:
-                logging.error(f"Invalid app type: {app_type}")
-                return False
+        # Read the current values.yaml file
+        with open(values_yaml_path, 'r') as file:
+            content = file.read()
+            
+        if value.get("app") == "SI":
+            # Get configuration values with defaults for SI
+            external_ip = value.get("external_ip", hostIP.strip())
+            su_pass = value.get("su_pass", "admin123")
+            pg_pass = value.get("pg_pass", "postgres123")
+            no_proxy = value.get("no_proxy", "localhost,127.0.0.1,.local,.cluster.local")
                 
-            values_yaml_path = os.path.join(self.metro_path, app_name, 
-                                          "chart" if app_type == "SI" else "helm-chart", "values.yaml")
-
-            if not os.path.exists(values_yaml_path):
-                raise Exception(f"values.yaml not found at: {values_yaml_path}")
+            if "externalIP:" in content:
+                content = re.sub(r'(\s+)externalIP:.*', f'\\1externalIP: "{external_ip}"', content)                
+            if "supass:" in content:
+                content = re.sub(r'supass:.*', f'supass: {su_pass}', content)                
+            if "pgpass:" in content:
+                content = re.sub(r'pgpass:.*', f'pgpass: {pg_pass}', content)
+            if "no_proxy:" in content:
+                content = re.sub(r'no_proxy:.*', f'no_proxy: {no_proxy}', content)
+        else:
+            # Get configuration values with defaults
+            host_ip = value.get("host_ip", hostIP.strip())
+            webrtc_username = value.get("webrtc_username", "testuser")
+            webrtc_password = value.get("webrtc_password", "testpass")
+                                
+            if "HOST_IP:" in content:
+                content = re.sub(r'HOST_IP:.*', f'HOST_IP: {host_ip}', content)
+            if "webrtcturnserver:" in content:
+                if "username:" in content:
+                    content = re.sub(r'(\s+)username:.*', f'\\1username: {webrtc_username}', content)
+                if "password:" in content:
+                    content = re.sub(r'(\s+)password:.*', f'\\1password: {webrtc_password}', content)
+        # Write the updated content back to the file
+        with open(values_yaml_path, 'w') as file:
+            file.write(content)
             
-            logging.info(f"Updating values.yaml for {app_name}")
-            
-            with open(values_yaml_path, 'r') as file:
-                content = file.read()
-
-            if app_type == "SI":
-                configs = {
-                    'externalIP': value.get("external_ip", hostIP.strip()),
-                    'supass': value.get("su_pass", "admin123"),
-                    'pgpass': value.get("pg_pass", "postgres123"),
-                    'no_proxy': value.get("no_proxy", "localhost,127.0.0.1,.local,.cluster.local"),
-                }
-                updates = {
-                    'externalIP:': f'externalIP: "{configs["externalIP"]}"',
-                    'supass:': f'supass: {configs["supass"]}',
-                    'pgpass:': f'pgpass: {configs["pgpass"]}',
-                    'no_proxy:': f'no_proxy: {configs["no_proxy"]}',
-                }
-            else:
-                configs = {
-                    'HOST_IP': value.get("host_ip", hostIP.strip()),
-                    'webrtc_username': value.get("webrtc_username", "testuser"),
-                    'webrtc_password': value.get("webrtc_password", "testpass"),
-                }
-                updates = {
-                    'HOST_IP:': f'HOST_IP: {configs["HOST_IP"]}',
-                    'username:': f'username: {configs["webrtc_username"]}',
-                    'password:': f'password: {configs["webrtc_password"]}',
-                }
-
-            for key, new_value in updates.items():
-                pattern = re.compile(f"^{re.escape(key)}.*", re.MULTILINE)
-                if pattern.search(content):
-                    content = pattern.sub(new_value, content)
-
-            with open(values_yaml_path, 'w') as file:
-                file.write(content)
-            
-            logging.info(f"Successfully updated {values_yaml_path}")
-            return True
-            
-        except Exception as e:
-            logging.error(f"Exception in update_values_helm: {e}")
-            return False
-
+        logging.info(f"Successfully updated {values_yaml_path}")
+        return True
+       
         
     def helm_deploy(self, value):
         """
