@@ -93,13 +93,13 @@ For most users, **the setup script approach documented in [Get Started](./get-st
 
 **Description**: Traffic density threshold for high traffic (red highlight in UI)  
 **Default**: `10`  
-**Example**: `export HIGH_DENSITY_THRESHOLD=5`
+**Example**: `export HIGH_DENSITY_THRESHOLD=10`
 
 #### MODERATE_DENSITY_THRESHOLD
 
 **Description**: Traffic density threshold for moderate traffic (yellow highlight in UI)  
-**Default**: `3`  
-**Example**: `export MODERATE_DENSITY_THRESHOLD=3`
+**Default**: `5`  
+**Example**: `export MODERATE_DENSITY_THRESHOLD=5`
 
 #### VLM_TIMEOUT_SECONDS
 
@@ -366,32 +366,32 @@ export VLM_TIMEOUT_SECONDS=10
 
 ```bash
 # Conservative threshold
-export HIGH_DENSITY_THRESHOLD=3
+export HIGH_DENSITY_THRESHOLD=6
 
 # Default threshold
-export HIGH_DENSITY_THRESHOLD=5
+export HIGH_DENSITY_THRESHOLD=10
 
 # High threshold for busy areas
-export HIGH_DENSITY_THRESHOLD=8
+export HIGH_DENSITY_THRESHOLD=15
 ```
 
 #### MODERATE_DENSITY_THRESHOLD
 
 **Description**: Traffic density threshold for moderate traffic UI highlighting (yellow). Vehicles >= this value but < HIGH_DENSITY_THRESHOLD will show yellow.
 
-**Default**: `3`
+**Default**: `5`
 
 **Examples**:
 
 ```bash
 # Low threshold
-export MODERATE_DENSITY_THRESHOLD=2
-
-# Default threshold
 export MODERATE_DENSITY_THRESHOLD=3
 
-# Higher threshold
+# Default threshold
 export MODERATE_DENSITY_THRESHOLD=5
+
+# Higher threshold
+export MODERATE_DENSITY_THRESHOLD=7
 ```
 
 #### VLM_COOLDOWN_MINUTES
