@@ -30,22 +30,12 @@ jobs:
         include:
           - ubuntu_version: ubuntu22 
     steps:
-    - name: Determine branch
-      id: get_branch
-      run: |
-        if [ -n "${{ inputs.branch }}" ]; then
-          echo "branch=${{ inputs.branch }}" >> $GITHUB_OUTPUT
-        elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          echo "branch=${{ github.event.inputs.branch }}" >> $GITHUB_OUTPUT
-        else
-          echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-        fi
-    - name: Check out edge-ai-suites repository
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #4.2.2
-      with:
-        persist-credentials: false
-        path: edge-ai-suites-repo
-        ref: ${{ steps.get_branch.outputs.branch }}
+     - uses: actions/checkout@v4
+       with:
+          fetch-depth: 0
+          persist-credentials: false
+          path: edge-ai-suites-repo
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
