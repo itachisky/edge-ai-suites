@@ -21,7 +21,7 @@ on:
 jobs:   
 
   trivy-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-32core-128GB
     permissions:
       contents: read
     steps:
@@ -72,7 +72,7 @@ jobs:
           path: security-results/trivy*
 
   bandit-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-32core-128GB
     permissions:
       contents: read
     steps:
@@ -96,7 +96,7 @@ jobs:
         
 
   clamav-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-32core-128GB
     permissions:
       contents: read
     steps:
@@ -120,7 +120,7 @@ jobs:
 
 # GitLeaks scanning job - matching your existing pattern
   gitleaks-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-32core-128GB
     permissions:
       contents: read
     steps:
@@ -157,7 +157,7 @@ jobs:
 
 # Python linting with pylint
   pylint-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-32core-128GB
     permissions:
       contents: read
     steps:
@@ -209,7 +209,7 @@ jobs:
 
 # ShellCheck scanning job
   shellcheck-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-32core-128GB
     permissions:
       contents: read
     steps:
