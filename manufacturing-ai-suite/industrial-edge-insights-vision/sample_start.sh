@@ -18,13 +18,24 @@ PAYLOAD_COPIES=1                       # Default to running a single copy of the
 DEPLOYMENT_TYPE=""                     # Default deployment type (empty for existing flow)
 
 init() {
-    # load environment variables from .env file if it exists
-    if [[ -f "$SCRIPT_DIR/.env" ]]; then
-        export $(grep -v -E '^\s*#' "$SCRIPT_DIR/.env" | sed -e 's/#.*$//' -e '/^\s*$/d' | xargs)
-        echo "Environment variables loaded from $SCRIPT_DIR/.env"
+    # if INSTANCE_NAME is set, set APP_DIR accordingly, and load env from there
+    if [[ -n "$INSTANCE_NAME" ]]; then
+        APP_DIR="$SCRIPT_DIR/temp_apps/$SAMPLE_APP/$INSTANCE_NAME"
+        echo "Using instance: $INSTANCE_NAME"
+        # load environment variables from instance .env file
+        if [[ -f "$APP_DIR/.env" ]]; then
+            export $(grep -v -E '^\s*#' "$APP_DIR/.env" | sed -e 's/#.*$//' -e '/^\s*$/d' | xargs)
+            echo "Environment variables loaded from $APP_DIR/.env"
+        fi
     else
-        err "No .env file found in $SCRIPT_DIR"
-        exit 1
+        # load environment variables from .env file if it exists
+        if [[ -f "$SCRIPT_DIR/.env" ]]; then
+            export $(grep -v -E '^\s*#' "$SCRIPT_DIR/.env" | sed -e 's/#.*$//' -e '/^\s*$/d' | xargs)
+            echo "Environment variables loaded from $SCRIPT_DIR/.env"
+        else
+            err "No .env file found in $SCRIPT_DIR"
+            exit 1
+        fi
     fi
 
     # check if SAMPLE_APP is set
@@ -130,7 +141,7 @@ launch_pipeline() {
 
 }
 
-start_piplines() {
+start_pipelines() {
     # initialize the sample app, load env
     init
     # check if dlstreamer-pipeline-server is running
@@ -186,6 +197,7 @@ usage() {
     echo "Arguments:"
     echo "  helm                            For Helm deployment (adds :30443 port to HOST_IP for curl commands)"
     echo "Options:"
+    echo "  -i, --instance <instance_name>  Specify the instance name to use"
     echo "  --all                           Run all pipelines in the config (Default)"
     echo "  -p, --pipeline <pipeline_name>  Specify the pipeline to run"
     echo "  -n, --payload-copies            Run copies of the payloads for pipeline(s)."
@@ -239,37 +251,113 @@ main() {
     # no arguments provided, start all pipelines
     if [[ -z "$1" ]]; then
         echo "No pipeline specified. Starting all pipelines..."
-        start_piplines
+        start_pipelines
         return
     fi
 
-    # Check remaining arguments
-    case "$1" in
-    --all)
-        echo "Starting all pipelines..."
-        start_piplines
-        ;;
-    -p | --pipeline)
-        # Check if the next argument is provided and not empty, and loop through all pipelines and launch them
-        shift
-        if [[ -z "$1" ]]; then
-            err "--pipeline requires a non-empty argument."
-            usage
-            exit 1
-        else
-            start_piplines "$@"
-        fi
-        ;;
-    -h | --help)
-        usage
-        exit 0
-        ;;
-    *)
-        err "Invalid option '$1'."
-        usage
-        exit 1
-        ;;
-    esac
+    # Parse remaining arguments for various scenarios
+    # Handle -i/--instance, --payload, --all, -p/--pipeline combinations
+    
+    CUSTOM_PAYLOAD=""
+    
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -i | --instance)
+                shift
+                if [[ -z "$1" || "$1" =~ ^- ]]; then
+                    err "--instance requires a non-empty argument."
+                    usage
+                    exit 1
+                fi
+                INSTANCE_NAME="$1"
+                echo "Instance name set to: $INSTANCE_NAME"
+                shift
+                ;;
+            --payload)
+                shift
+                if [[ -z "$1" || "$1" =~ ^- ]]; then
+                    err "--payload requires a file path argument."
+                    usage
+                    exit 1
+                fi
+                CUSTOM_PAYLOAD="$1"
+                if [[ ! -f "$CUSTOM_PAYLOAD" ]]; then
+                    err "Payload file not found: $CUSTOM_PAYLOAD"
+                    exit 1
+                fi
+                echo "Custom payload file set to: $CUSTOM_PAYLOAD"
+                shift
+                ;;
+            --all)
+                echo "Starting all pipelines..."
+                start_pipelines
+                exit 0
+                ;;
+            -p | --pipeline)
+                shift
+                if [[ -z "$1" || "$1" =~ ^- ]]; then
+                    err "--pipeline requires at least one pipeline name."
+                    usage
+                    exit 1
+                fi
+                # Collect all pipeline names until we hit another option or end
+                pipelines=()
+                while [[ $# -gt 0 && ! "$1" =~ ^- ]]; do
+                    pipelines+=("$1")
+                    shift
+                done
+                echo "Starting specified pipeline(s)..."
+                start_pipelines "${pipelines[@]}"
+                exit 0
+                ;;
+            -h | --help)
+                usage
+                exit 0
+                ;;
+            *)
+                err "Invalid option '$1'."
+                usage
+                exit 1
+                ;;
+        esac
+    done
+    
+
+
+#     case "$1" in
+#         -i | --instance)
+#             # set variable INSTANCE_NAME to its value, else keep it empty
+#             INSTANCE_NAME="$1"
+#             if [[ -z "$INSTANCE_NAME" ]]; then
+#                 INSTANCE_NAME=""
+#             fi
+#             shift
+#             ;;
+#     --all)
+#         echo "Starting all pipelines..."
+#         start_pipelines
+#         ;;
+#     -p | --pipeline)
+#         # Check if the next argument is provided and not empty, and loop through all pipelines and launch them
+#         shift
+#         if [[ -z "$1" ]]; then
+#             err "--pipeline requires a non-empty argument."
+#             usage
+#             exit 1
+#         else
+#             start_pipelines "$@"
+#         fi
+#         ;;
+#     -h | --help)
+#         usage
+#         exit 0
+#         ;;
+#     *)
+#         err "Invalid option '$1'."
+#         usage
+#         exit 1
+#         ;;
+#     esac
 }
 
 main "$@"

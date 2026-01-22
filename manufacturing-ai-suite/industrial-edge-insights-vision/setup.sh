@@ -9,6 +9,87 @@ err() {
     echo "ERROR: $1" >&2
 }
 
+init() {
+    if [[ -f "$CONFIG_FILE" ]]; then
+    # Parse config and process each instance
+    # sample config.yml content:        
+        #   pallet-defect-detection:
+        #     pdd1:
+        #         NGINX_HTTP_PORT: 8080
+        #         NGINX_HTTPS_PORT: 8443
+        #         COTURN_UDP_PORT: 3478
+        #         MINIO_EXTERNAL_PORT: 8001
+        #     pdd2:
+        #         NGINX_HTTP_PORT: 9080
+        #         NGINX_HTTPS_PORT: 9443
+        #         COTURN_UDP_PORT: 3479
+        #         MINIO_EXTERNAL_PORT: 9001
+        #   weld-porosity:
+        #     weld1:
+        #         NGINX_HTTP_PORT: 10080
+        #         NGINX_HTTPS_PORT: 10443
+        #         COTURN_UDP_PORT: 3480
+        #         MINIO_EXTERNAL_PORT: 10001
+    # parse config.yml to get SAMPLE_APP, INSTANCE_ID and their key-value pairs
+    # call set_permission for each SAMPLE_APP like pallet-defect-detection, weld-porosity etc
+    # call init_instance for each INSTANCE_ID under SAMPLE_APP with key-value pairs
+    # Get unique sample apps and set permissions for each
+        awk '
+        /^[a-zA-Z_][a-zA-Z0-9_-]*:/ {
+            sample_app = $1
+            gsub(/:/, "", sample_app)
+            print sample_app
+        }
+        ' "$CONFIG_FILE" | sort -u | while read -r sample_app; do
+            APP_DIR="$SCRIPT_DIR/apps/$sample_app"
+            set_permissions "$APP_DIR"
+        done
+        echo "Parsing config file: $CONFIG_FILE"
+
+        while IFS='|' read -r sample_app instance_id env_vars; do
+            init_instance "$sample_app" "$instance_id" "$env_vars"            
+        done < <(parse_config_yml)
+        
+        echo "All instances setup completed"        
+    else
+        # load environment variables from .env file if it exists
+        if [[ -f "$SCRIPT_DIR/.env" ]]; then
+            export $(grep -v -E '^\s*#' "$SCRIPT_DIR/.env" | sed -e 's/#.*$//' -e '/^\s*$/d' | xargs)
+            echo "Environment variables loaded from $SCRIPT_DIR/.env"
+        else
+            err "No .env file found in $SCRIPT_DIR"
+            exit 1
+        fi
+
+        # check if SAMPLE_APP is set
+        if [[ -z "$SAMPLE_APP" ]]; then
+            err "SAMPLE_APP environment variable is not set."
+            exit 1
+        else
+            echo "Running sample app: $SAMPLE_APP"
+            # update APP_DIR in $SCRIPT_DIR/.env to $SAMPLE_APP
+            if grep -q "^APP_DIR=" "$SCRIPT_DIR/.env"; then
+                sed -i "s|^APP_DIR=.*|APP_DIR=$SCRIPT_DIR/apps/$SAMPLE_APP|" "$SCRIPT_DIR/.env"
+            else
+                # add APP_DIR to .env file in new line
+                if [[ -s "$SCRIPT_DIR/.env" && $(tail -c1 "$SCRIPT_DIR/.env" | wc -l) -eq 0 ]]; then
+                    # Add a newline first
+                    echo "" >>"$SCRIPT_DIR/.env"
+                fi
+                echo "APP_DIR=$SCRIPT_DIR/apps/$SAMPLE_APP" >>"$SCRIPT_DIR/.env"
+            fi
+            APP_DIR="$SCRIPT_DIR/apps/$SAMPLE_APP"
+            set_permissions "$APP_DIR"
+        fi
+        
+        # check if SAMPLE_APP directory exists
+        if [[ ! -d "$APP_DIR" ]]; then
+            err "SAMPLE_APP directory $APP_DIR does not exist."
+            exit 1
+        fi
+    fi
+}
+
 # Function to parse YAML and extract SAMPLE_APP, INSTANCE_ID, and their key-value pairs
 parse_config_yml() {
     if [[ ! -f "$CONFIG_FILE" ]]; then
@@ -125,8 +206,6 @@ init_instance() {
     # Append instance-specific environment variables to the .env file
     echo "" >> "$TEMP_APP_DIR/.env"
     echo "# Instance-specific variables for $SAMPLE_APP/$INSTANCE_ID" >> "$TEMP_APP_DIR/.env"
-    # echo "SAMPLE_APP=$SAMPLE_APP" >> "$TEMP_APP_DIR/.env"
-    # echo "INSTANCE_ID=$INSTANCE_ID" >> "$TEMP_APP_DIR/.env"
     echo "INSTANCE_NAME=$INSTANCE_ID" >> "$TEMP_APP_DIR/.env"
     
     # Parse and append the ENV_VARS
@@ -152,9 +231,9 @@ init_instance() {
     
     # Update APP_DIR in the instance .env file
     if grep -q "^APP_DIR=" "$TEMP_APP_DIR/.env"; then
-        sed -i "s|^APP_DIR=.*|APP_DIR=$SOURCE_APP_DIR|" "$TEMP_APP_DIR/.env"
+        sed -i "s|^APP_DIR=.*|APP_DIR=$TEMP_APP_DIR|" "$TEMP_APP_DIR/.env"
     else
-        echo "APP_DIR=$SOURCE_APP_DIR" >> "$TEMP_APP_DIR/.env"
+        echo "APP_DIR=$TEMP_APP_DIR" >> "$TEMP_APP_DIR/.env"
     fi
     
     echo "Instance .env file configured at $TEMP_APP_DIR/.env"
@@ -285,7 +364,15 @@ main() {
             err "Helm apps directory $APP_DIR does not exist."
             exit 1
         fi
-        
+    else
+        # initialize the compose based sample app, load env
+        init
+        # APP_DIR="$SCRIPT_DIR/apps/$SAMPLE_APP"
+    fi
+}
+
+set_permissions(){    
+    APP_DIR=$1
         # set permissions for the sample_*.sh scripts in current directory
         for script in "$SCRIPT_DIR"/sample_*.sh; do
             if [[ -f "$script" ]]; then
@@ -305,27 +392,7 @@ main() {
         else
             err "No setup.sh found in $APP_DIR directory."
             exit 1
-        fi
-    else
-        # Process all instances from config.yml
-        echo "Reading configuration from $CONFIG_FILE"
-        
-        # Set permissions for the sample_*.sh and run.sh scripts in current directory
-        for script in "$SCRIPT_DIR"/sample_*.sh "$SCRIPT_DIR"/run.sh; do
-            if [[ -f "$script" ]]; then
-                echo "Setting executable permission for $script"
-                chmod +x "$script"
-            fi
-        done
-        
-        # Parse config and process each instance
-        while IFS='|' read -r sample_app instance_id env_vars; do
-            init_instance "$sample_app" "$instance_id" "$env_vars"            
-        done < <(parse_config_yml)
-        
-        echo "All instances setup completed"
-        
-    fi
-}
+        fi    
+    }
 
 main "$@"
