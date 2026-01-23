@@ -30,17 +30,46 @@ jobs:
         include:
           - ubuntu_version: ubuntu22
     steps:
+      
+      - name: Determine branch
+        id: get_branch
+        run: |
+          if [ -n "${{ inputs.branch }}" ]; then
+            echo "branch=${{ inputs.branch }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "branch=${{ github.event.inputs.branch }}" >> $GITHUB_OUTPUT
+          else
+            echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
           path: edge-ai-suites-repo
-
+          ref: "sowmya/metro_ci_job"
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.29.0
 
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Create KinD cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: ci-cluster
+
+      - name: Verify cluster
+        run: |
+          kubectl get nodes
+          kubectl cluster-info
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 #3.4.0
         with:
