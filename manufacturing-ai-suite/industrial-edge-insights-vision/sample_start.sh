@@ -143,18 +143,34 @@ init() {
     fi
 
     # Set the appropriate HOST_IP with port for curl commands based on deployment type
-    if [[ "$DEPLOYMENT_TYPE" == "helm" ]]; then
-        CURL_HOST_IP="${HOST_IP}:30443"
-        echo "Using Helm deployment - curl commands will use: $CURL_HOST_IP"
+    # IF config.yml file exists, then set CURL_HOST_IP as HOST_IP:NGINX_HTTPS_PORT otherwise set CURL_HOST_IP as HOST_IP:30443 for helm deployment and HOST_IP for default 
+    if [[ -f "$CONFIG_FILE" ]]; then
+        if [[ "$DEPLOYMENT_TYPE" == "helm" ]]; then
+            CURL_HOST_IP="${HOST_IP}:30443"
+            echo "Using Helm deployment - curl commands will use: $CURL_HOST_IP"
+        else
+            CURL_HOST_IP="$HOST_IP:$NGINX_HTTPS_PORT"
+            echo "Using default deployment - curl commands will use: $CURL_HOST_IP"
+        fi
     else
-        CURL_HOST_IP="$HOST_IP:$NGINX_HTTPS_PORT"
-        echo "Using default deployment - curl commands will use: $CURL_HOST_IP"
+        if [[ "$DEPLOYMENT_TYPE" == "helm" ]]; then
+            CURL_HOST_IP="${HOST_IP}:30443"
+            echo "Using Helm deployment - curl commands will use: $CURL_HOST_IP"
+        else
+            CURL_HOST_IP="$HOST_IP"
+            echo "Using default deployment - curl commands will use: $CURL_HOST_IP"
+        fi
     fi
 }
 
 load_payload() {
     # Load all pipelines payload
-    PAYLOAD_FILE="$APP_DIR/payload.json"
+    if [[ -n "$CUSTOM_PAYLOAD" ]]; then
+        PAYLOAD_FILE="$CUSTOM_PAYLOAD"
+    else
+        PAYLOAD_FILE="$APP_DIR/payload.json"
+    fi
+
     if [[ -f "$PAYLOAD_FILE" ]]; then
         echo "Loading payload from $PAYLOAD_FILE"
         if command -v jq &>/dev/null; then
@@ -162,7 +178,6 @@ load_payload() {
             # find the list of pipelines in the payload
             ALL_PIPELINES_IN_PAYLOAD=$(echo "$PAYLOAD" | jq 'group_by(.pipeline) | map({pipeline: .[0].pipeline, payloads: map(.payload)})')
             echo "Payload loaded successfully."
-
         else
             err "jq is not installed. Cannot parse JSON payload."
             exit 1
@@ -232,6 +247,31 @@ launch_pipeline() {
 
 }
 
+# Helper function to launch pipelines based on arguments
+launch_pipelines_from_args() {
+    # If no arguments are provided, start only the first pipeline
+    if [[ -z "$1" ]]; then
+        first_pipeline=$(echo "$ALL_PIPELINES_IN_PAYLOAD" | jq -r '.[0].pipeline')
+        echo "Starting first pipeline: $first_pipeline"
+        launch_pipeline "$first_pipeline"
+        return
+    fi
+    # Expect other arguments to be pipeline names
+    # If the next argument is not an option (doesn't start with - or --), start all the subsequent arg as pipelines
+    while [[ $# -gt 0 && "$1" != "--" ]]; do
+        if [[ -n "$1" && ! "$1" =~ ^- ]]; then
+            echo "Starting pipeline: $1"
+            launch_pipeline "$1"
+            # check for a id as response from POST curl with a timeout
+            shift
+        else
+            err "Invalid argument '$1'. Expected a pipeline name."
+            usage
+            exit 1
+        fi
+    done
+}
+
 start_pipelines() {
     # initialize the sample app, load env
     # get directory for the .env file based on whether config.yml and INSTANCE_NAME is present or not
@@ -247,6 +287,10 @@ start_pipelines() {
         get_status
         # load the payload
         load_payload
+        
+        # Launch pipelines based on arguments
+        launch_pipelines_from_args "$@"
+        return
     # if config.yml exists and INSTANCE_NAME is not set
     # Process all instances from config.yml
     elif [[ -f "$CONFIG_FILE" && -z "$INSTANCE_NAME" ]]; then
@@ -264,20 +308,8 @@ start_pipelines() {
             # load the payload
             load_payload
 
-            # If no arguments are provided, start only the first pipeline
-            if [[ -z "$1" ]]; then
-                first_pipeline=$(echo "$ALL_PIPELINES_IN_PAYLOAD" | jq -r '.[0].pipeline')
-                echo "Starting first pipeline for $instance_name: $first_pipeline"
-                launch_pipeline "$first_pipeline"
-            else
-                # Start specified pipelines
-                for pipeline in "$@"; do
-                    if [[ -n "$pipeline" && ! "$pipeline" =~ ^- ]]; then
-                        echo "Starting pipeline for $instance_name: $pipeline"
-                        launch_pipeline "$pipeline"
-                    fi
-                done
-            fi
+            # Launch pipelines based on arguments
+            launch_pipelines_from_args "$@"
         done < <(parse_config_yml)
         return
     # else if config.yml does not exist then load .env from SCRIPT_DIR and call init
@@ -289,30 +321,10 @@ start_pipelines() {
         get_status
         # load the payload
         load_payload
+        
+        # Launch pipelines based on arguments
+        launch_pipelines_from_args "$@"
     fi
-
-    # If no arguments are provided, start only the first pipeline
-    if [[ -z "$1" ]]; then
-        first_pipeline=$(echo "$ALL_PIPELINES_IN_PAYLOAD" | jq -r '.[0].pipeline')
-        echo "Starting first pipeline: $first_pipeline"
-        launch_pipeline "$first_pipeline"
-        return
-    fi
-    # Expect other arguments to be pipeline names
-    # If the next argument is not an option (doesn't start with - or --), start all the subsquent arg as pipelines
-    while [[ $# -gt 0 && "$1" != "--" ]]; do
-        if [[ -n "$1" && ! "$1" =~ ^- ]]; then
-            echo "Starting pipeline: $1"
-            launch_pipeline "$1"
-            # check for a id as response from POST curl with a timeout
-            shift
-        else
-            err "Invalid argument '$1'. Expected a pipeline name."
-            usage
-            exit 1
-        fi
-    done
-
 }
 
 get_status() {
@@ -496,12 +508,6 @@ main() {
                 ;;
         esac
     done
-    
-    # If we reach here, check if INSTANCE_NAME was set but no other action was taken
-    if [[ -n "$INSTANCE_NAME" ]]; then
-        echo "Starting pipelines for instance: $INSTANCE_NAME"
-        start_pipelines
-    fi
     
 
 
