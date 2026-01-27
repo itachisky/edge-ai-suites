@@ -790,9 +790,12 @@ class utils:
             # Get configuration values with defaults
             host_ip = value.get("host_ip", hostIP.strip())
             webrtc_username = value.get("webrtc_username", "testuser")
+            no_proxy = value.get("no_proxy", "localhost,127.0.0.1,.local,.cluster.local,mraas-minio")
                                 
             if "HOST_IP:" in content:
                 content = re.sub(r'HOST_IP:.*', f'HOST_IP: {host_ip}', content)
+            if "no_proxy:" in content:
+                content = re.sub(r'no_proxy:.*', f'no_proxy: {no_proxy}', content)
             if "webrtcturnserver:" in content:
                 if "username:" in content:
                     content = re.sub(r'(\s+)username:.*', f'\\1username: {webrtc_username}', content)
