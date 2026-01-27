@@ -244,7 +244,7 @@ class utils:
             try:
                 if pipeline_name:
                     if deployment_type=="helm":
-                        output = subprocess.check_output(f"./sample_start.sh helm -p {pipeline_name}", shell=True, executable='/bin/bash')
+                        output = subprocess.check_output(f"./sample_start.sh helm -p {pipeline_name}", shell=True, executable='/bin/bash', stderr=subprocess.STDOUT)
                     else:
                         output = subprocess.check_output(f"./sample_start.sh -p {pipeline_name}", shell=True, executable='/bin/bash')
                     logging.info(f"Using configured pipeline: {pipeline_name}")
