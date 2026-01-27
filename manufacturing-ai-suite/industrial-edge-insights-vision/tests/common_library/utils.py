@@ -454,7 +454,9 @@ class utils:
             with open("helm/values.yaml", 'r') as file:
                 values_data = yaml.safe_load(file)
             env_updates = {
-                "HOST_IP": hostIP, "MINIO_ACCESS_KEY": "minioadmin", "MINIO_SECRET_KEY": "minioadmin", "POSTGRES_PASSWORD": "test1234", "SAMPLE_APP": sample_app_name
+                "HOST_IP": hostIP, "MINIO_ACCESS_KEY": "minioadmin", "MINIO_SECRET_KEY": "minioadmin", "POSTGRES_PASSWORD": "test1234", "SAMPLE_APP": sample_app_name,
+                "no_proxy": "localhost,127.0.0.1,.local,.cluster.local,mraas-minio",
+                "NO_PROXY": "localhost,127.0.0.1,.local,.cluster.local,mraas-minio"
             }
             values_data['env'].update(env_updates)
             if 'webrtcturnserver' not in values_data:
