@@ -338,39 +338,6 @@ usage() {
     echo "  -h, --help                      Show this help message"
 }
 
-
-get_sample_app(){
-    SAMPLE_APP=$(awk -v instance="$INSTANCE_NAME" '
-    BEGIN { sample_app = "" }
-    /^[[:space:]]*$/ { next }
-    /^[[:space:]]*#/ { next }
-    
-    /^[a-zA-Z_][a-zA-Z0-9_-]*:/ {
-        current_app = $1
-        gsub(/:/, "", current_app)
-        next
-    }
-    
-    /^  [a-zA-Z_][a-zA-Z0-9_-]*:/ {
-        instance_name = $1
-        gsub(/^[[:space:]]+/, "", instance_name)
-        gsub(/:/, "", instance_name)
-        if (instance_name == instance) {
-            sample_app = current_app
-            print sample_app
-            exit
-        }
-    }
-    ' "$CONFIG_FILE")
-    
-    if [[ -z "$SAMPLE_APP" ]]; then
-        err "Instance '$INSTANCE_NAME' not found in config file."
-        exit 1
-    else
-        echo "Found SAMPLE_APP: $SAMPLE_APP for INSTANCE_NAME: $INSTANCE_NAME"
-    fi
-}
-
 main() {
 
     # Check for helm argument first and set DEPLOYMENT_TYPE
