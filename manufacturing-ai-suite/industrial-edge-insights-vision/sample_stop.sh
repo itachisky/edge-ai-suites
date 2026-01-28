@@ -191,7 +191,13 @@ stop_pipelines() {
         init
         # check if dlstreamer-pipeline-server is running
         get_status
-        stop_pipeline_instances "$@"
+        
+        # If specific INSTANCE_ID provided, stop only that one; otherwise stop all
+        if [[ -n "$INSTANCE_ID" ]]; then
+            delete_pipeline_instance "$INSTANCE_ID"
+        else
+            stop_pipeline_instances
+        fi
         return
     # if config.yml exists and INSTANCE_NAME is not set
     # Process all instances from config.yml
@@ -219,8 +225,13 @@ stop_pipelines() {
         
         # check if dlstreamer-pipeline-server is running
         get_status
-        # load the payload
-        stop_pipeline_instances "$@"
+        
+        # If specific INSTANCE_ID provided, stop only that one; otherwise stop all
+        if [[ -n "$INSTANCE_ID" ]]; then
+            delete_pipeline_instance "$INSTANCE_ID"
+        else
+            stop_pipeline_instances
+        fi
     fi
 }
 
@@ -292,7 +303,10 @@ main() {
         return
     fi
 
-    # Parse arguments to determine instance_name and instance_id
+    # Parse arguments to determine instance_name and instance_id 
+    # If both are empty, it means stop all instances
+    # After while loop, instance_name is set to $INSTANCE_NAME and instance_id to $INSTANCE_ID depending on user input
+    
     instance_name=""
     instance_id=""
     
@@ -335,39 +349,78 @@ main() {
                 ;;
         esac
     done
-    
-    # Now execute based on what was provided
-    # Case 1: instance_name is given
-    if [[ -n "$instance_name" ]]; then
-        # Case 1.1: instance_name given, instance_id also given
-        if [[ -n "$instance_id" ]]; then
-            echo "Stopping pipeline ID '$instance_id' on instance '$instance_name'"
-            INSTANCE_NAME="$instance_name"
-            stop_pipelines  # Initialize environment for this instance
-            delete_pipeline_instance "$instance_id"
-        # Case 1.2: instance_name given, instance_id NOT given
-        else
-            echo "Stopping all pipelines for instance: $instance_name"
-            INSTANCE_NAME="$instance_name"
-            stop_pipelines
-        fi
-    # Case 2: instance_name NOT given, but instance_id IS given
-    elif [[ -n "$instance_id" ]]; then
-        echo "Stopping pipeline ID: $instance_id"
-        ENV_PATH="$SCRIPT_DIR/.env"
-        init
-        get_status
-        delete_pipeline_instance "$instance_id"
-    # Case 3: Nothing given
-    else
-        # Case 3.1 & 3.2: stop_pipelines handles both config.yml and no-config scenarios
-        if [[ -f "$CONFIG_FILE" ]]; then
-            echo "Stopping all instances from config.yml"
-        else
-            echo "Stopping all pipelines (no config.yml found)"
-        fi
-        stop_pipelines
-    fi
+    # Set INSTANCE_NAME and INSTANCE_ID based on parsed values
+    INSTANCE_NAME="$instance_name"
+    INSTANCE_ID="$instance_id"
+    stop_pipelines
+    # # Now execute based on what was provided
+    # # Case 1: instance_name is given
+    # if [[ -n "$instance_name" ]]; then
+    #     # Case 1.1: instance_name given, instance_id also given
+    #     if [[ -n "$instance_id" ]]; then
+    #         echo "Stopping pipeline ID '$instance_id' on instance '$instance_name'"
+    #         get_sample_app
+    #         ENV_PATH="$SCRIPT_DIR/temp_apps/$SAMPLE_APP/$INSTANCE_NAME/.env"
+    #         init
+    #         get_status
+    #         delete_pipeline_instance "$instance_id"
+    #     # Case 1.2: instance_name given, instance_id NOT given
+    #     else
+    #         echo "Stopping all pipelines for instance: $instance_name"
+    #         stop_pipelines
+    #     fi
+    # # Case 2: instance_name NOT given, but instance_id IS given
+    # elif [[ -n "$instance_id" ]]; then
+    #     echo "Stopping pipeline ID: $instance_id"
+    #     ENV_PATH="$SCRIPT_DIR/.env"
+    #     init
+    #     get_status
+    #     delete_pipeline_instance "$instance_id"
+    # # Case 3: Nothing given
+    # else
+    #     # Case 3.1 & 3.2: stop_pipelines handles both config.yml and no-config scenarios
+    #     if [[ -f "$CONFIG_FILE" ]]; then
+    #         echo "Stopping all instances from config.yml"
+    #     else
+    #         echo "Stopping all pipelines (no config.yml found)"
+    #     fi
+    #     stop_pipelines
+    # fi
+    # # Now execute based on what was provided
+    # # Case 1: instance_name is given
+    # if [[ -n "$instance_name" ]]; then
+    #     # Case 1.1: instance_name given, instance_id also given
+    #     if [[ -n "$instance_id" ]]; then
+    #         echo "Stopping pipeline ID '$instance_id' on instance '$instance_name'"
+    #         INSTANCE_NAME="$instance_name"
+    #         get_sample_app
+    #         ENV_PATH="$SCRIPT_DIR/temp_apps/$SAMPLE_APP/$INSTANCE_NAME/.env"
+    #         init
+    #         get_status
+    #         delete_pipeline_instance "$instance_id"
+    #     # Case 1.2: instance_name given, instance_id NOT given
+    #     else
+    #         echo "Stopping all pipelines for instance: $instance_name"
+    #         INSTANCE_NAME="$instance_name"
+    #         stop_pipelines
+    #     fi
+    # # Case 2: instance_name NOT given, but instance_id IS given
+    # elif [[ -n "$instance_id" ]]; then
+    #     echo "Stopping pipeline ID: $instance_id"
+    #     ENV_PATH="$SCRIPT_DIR/.env"
+    #     init
+    #     get_status
+    #     delete_pipeline_instance "$instance_id"
+    # # Case 3: Nothing given
+    # else
+    #     # Case 3.1 & 3.2: stop_pipelines handles both config.yml and no-config scenarios
+    #     if [[ -f "$CONFIG_FILE" ]]; then
+    #         echo "Stopping all instances from config.yml"
+    #     else
+    #         echo "Stopping all pipelines (no config.yml found)"
+    #     fi
+    #     stop_pipelines
+    # fi
 }
 
 main "$@"
